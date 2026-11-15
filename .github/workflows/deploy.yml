@@ -1,5 +1,5 @@
 # Bygger appen og publiserer den på GitHub Pages: https://<bruker>.github.io/<repo>/
-# Krever én gang: Settings → Pages → Source: «GitHub Actions».
+# Slår på Pages automatisk første gang (configure-pages med enablement).
 name: Publiser på GitHub Pages
 
 on:
@@ -21,6 +21,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+      - name: Slå på GitHub Pages (første gang)
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
       - uses: actions/setup-node@v5
         with:
           node-version: 22
