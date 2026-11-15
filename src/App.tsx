@@ -9,6 +9,7 @@ import AddRecipePage from './pages/AddRecipePage'
 import CookingModePage from './pages/CookingModePage'
 import ManualWizardPage from './pages/ManualWizardPage'
 import MainTabs from './components/MainTabs'
+import LinkPage from './pages/LinkPage'
 import PastePage from './pages/PastePage'
 import PhotoPage from './pages/PhotoPage'
 import RecipePage from './pages/RecipePage'
@@ -18,7 +19,7 @@ import RecipePage from './pages/RecipePage'
  *   /                         Hjem         (fane)
  *   /familie                  Familien     (fane)
  *   /ny                       Velg hvordan du vil legge inn
- *   /ny/lim-inn | /ny/bilde | /ny/manuelt
+ *   /ny/lenke | /ny/lim-inn | /ny/bilde | /ny/manuelt
  *   /oppskrift/:id            Oppskrift (klassisk + Recipe Grid)
  *   /oppskrift/:id/rediger    Rediger
  *   /oppskrift/:id/lag        Matlagingsmodus
@@ -34,6 +35,7 @@ export default function App() {
         <IonRouterOutlet>
           <Route path="/ny" element={<AddRecipePage />} />
           <Route path="/ny/lim-inn" element={<PastePage />} />
+          <Route path="/ny/lenke" element={<LinkPage />} />
           <Route path="/ny/bilde" element={<PhotoPage />} />
           <Route path="/ny/manuelt" element={<ManualWizardPage />} />
           <Route path="/oppskrift/:id" element={<RecipePage />} />

@@ -6,7 +6,7 @@ import { FormPage } from '../components/FormPage'
 import { ReviewForm, SaveButton } from '../components/ReviewForm'
 import { newId } from '../domain/ids'
 import { parseRecipeText } from '../domain/parseRecipeText'
-import { NotARecipeError, ocrAvailable, readRecipeFromImages } from '../lib/ocr'
+import { aiAvailable as ocrAvailable, readRecipeFromImages } from '../lib/ai'
 
 const MAX_IMAGES = 4
 type Phase = 'pick' | 'reading' | 'manual' | 'review'
@@ -52,7 +52,7 @@ export default function PhotoPage() {
       setUncertain(result.uncertain)
       setPhase('review')
     } catch (e) {
-      setError(e instanceof NotARecipeError ? 'Vi fant ingen oppskrift på bildet. Prøv et skarpere bilde, eller skriv av selv.' : (e as Error).message)
+      setError((e as Error).message)
       setPhase('pick')
     }
   }

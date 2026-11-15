@@ -19,8 +19,9 @@ export function StepFocus({ recipe, index, factor = 1, size = 'md' }: { recipe: 
   return (
     <article aria-live="polite" className="flex flex-col gap-5">
       <header className="flex flex-col gap-1">
-        <span className="eyebrow">
+        <span className="eyebrow flex items-center gap-2">
           Steg {index + 1} av {recipe.steps.length}
+          {step.suggested && <span className="chip min-h-6 bg-plum-soft px-2 text-[0.72rem] tracking-normal normal-case text-plum">Forslag</span>}
         </span>
         <h3 className={`font-semibold text-tomato ${xl ? 'text-[1.75rem] md:text-[2.1rem]' : 'text-[1.6rem]'}`}>{step.action}</h3>
       </header>

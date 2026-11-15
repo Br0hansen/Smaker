@@ -78,7 +78,7 @@ export default function ManualWizardPage() {
       )}
       {page === 2 && (
         <Step title="Hvordan lager du den?" lead="Tid og temperatur er valgfritt. Koblingene brukes til å lage Recipe Grid.">
-          <StepsEditor steps={draft.steps} ingredients={draft.ingredients} onChange={(steps) => setDraft({ ...draft, steps })} />
+          <StepsEditor steps={draft.steps} ingredients={draft.ingredients} recipeTitle={draft.title} onChange={(steps) => setDraft({ ...draft, steps })} />
         </Step>
       )}
       {page === 3 && (

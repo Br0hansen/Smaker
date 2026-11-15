@@ -21,7 +21,7 @@ export function ReviewForm({ draft, onChange }: { draft: Draft; onChange: (d: Dr
         <IngredientsEditor ingredients={draft.ingredients} onChange={(ingredients) => onChange({ ...draft, ingredients })} />
       </Section>
       <Section n={3} title="Fremgangsmåte">
-        <StepsEditor steps={draft.steps} ingredients={draft.ingredients} onChange={(steps) => onChange({ ...draft, steps })} />
+        <StepsEditor steps={draft.steps} ingredients={draft.ingredients} recipeTitle={draft.title} onChange={(steps) => onChange({ ...draft, steps })} />
       </Section>
       <Section n={4} title="Forhåndsvisning">
         <RecipePreview draft={draft} />

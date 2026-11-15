@@ -87,7 +87,10 @@ export function ClassicView({ recipe, factor, showMissing = true }: { recipe: Re
                     {isDone ? <IonIcon icon={checkmark} aria-label="Ferdig" /> : i + 1}
                   </span>
                   <span className="flex flex-col gap-2">
-                    <span className={`text-[1.08rem] leading-relaxed ${isDone ? 'text-ink-3' : 'text-ink'}`}>{s.text}</span>
+                    <span className={`text-[1.08rem] leading-relaxed ${isDone ? 'text-ink-3' : 'text-ink'}`}>
+                      {s.suggested && <span className="chip mr-2 min-h-6 bg-plum-soft px-2 align-middle text-[0.72rem] text-plum">Forslag</span>}
+                      {s.text}
+                    </span>
                     {(s.durationMin != null || s.temperatureC != null) && (
                       <span className="flex flex-wrap gap-2">
                         {s.durationMin != null && (

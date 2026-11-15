@@ -11,6 +11,7 @@ npm install
 npm run dev        # utviklingsserver
 npm test           # domenetester (tolking, kobling, rutenett)
 npm run test:db    # migrasjon + Row Level Security i PGlite
+npm run test:functions  # nettside-tolkingen i Edge Function-en (Deno)
 npm run build      # produksjonsbygg med service worker
 ```
 
@@ -46,7 +47,7 @@ Tabellene ligger i Supabase-prosjektet **DailyPep**, som deles med andre apper. 
 | `smaker_attachments` | Bilder og originalskanninger (filer i bøtta `smaker-media`) |
 | `smaker_favorites`, `smaker_recipe_versions` | Favoritter per person, versjonshistorikk |
 
-**Bildelesing:** Edge Function `smaker-read-recipe` (`supabase/functions/`) sender ett til fire bilder til Claude Sonnet 5.5 og får oppskriften tilbake som strukturert JSON (`src/domain/fromAiRead.ts` gjør den om til et utkast). Krever innlogget familiemedlem, maks 40 bilder per bruker per døgn, logget i `smaker_ai_usage`. API-nøkkelen settes som hemmelighet `ANTHROPIC_API_KEY` under Supabase → Edge Functions → Secrets.
+**Automatisk innlesing:** Edge Function `smaker-read-recipe` (`supabase/functions/`) har tre moduser: *bilder* (1–4 bilder → Claude Sonnet 5.5 → strukturert JSON), *lenke* (henter siden; schema.org/Recipe-data leses direkte uten språkmodell, ellers leser Claude teksten – f.eks. TikTok) og *foreslå steg* (når originalen bare har ingredienser; stegene merkes «Forslag», tider/temperaturer gjettes aldri). Kilden lagres i `source_url`. Krever innlogget familiemedlem, maks 40 bilder per bruker per døgn, logget i `smaker_ai_usage`. API-nøkkelen settes som hemmelighet `ANTHROPIC_API_KEY` under Supabase → Edge Functions → Secrets.
 
 RPC-er: `smaker_create_family`, `smaker_get_recipes`, `smaker_save_recipe` (hele grafen + ny versjon i én transaksjon, avviser utdaterte endringer), `smaker_delete_recipe`, `smaker_create_family_invite`, `smaker_accept_family_invite`. Sanntid på `smaker_recipes`. Migrasjoner i `supabase/migrations/`, testet med `npm run test:db`.
 

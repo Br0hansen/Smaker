@@ -1,16 +1,23 @@
 import { IonIcon } from '@ionic/react'
-import { cameraOutline, chevronForward, clipboardOutline, createOutline } from 'ionicons/icons'
+import { cameraOutline, chevronForward, clipboardOutline, createOutline, linkOutline } from 'ionicons/icons'
 import { Link } from 'react-router-dom'
 import { FormPage } from '../components/FormPage'
 
 const METHODS = [
+  {
+    to: '/ny/lenke',
+    icon: linkOutline,
+    title: 'Lim inn lenke',
+    text: 'Fra en oppskriftsside, en blogg eller TikTok. Vi henter ingredienser og fremgangsmåte.',
+    tone: 'bg-sea-soft text-sea',
+    badge: 'Raskest',
+  },
   {
     to: '/ny/lim-inn',
     icon: clipboardOutline,
     title: 'Lim inn tekst',
     text: 'Fra en nettside, en melding eller et dokument. Vi sorterer ingredienser og steg for deg.',
     tone: 'bg-sage-soft text-sage',
-    badge: 'Raskest',
   },
   {
     to: '/ny/bilde',

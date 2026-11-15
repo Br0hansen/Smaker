@@ -1,6 +1,6 @@
 {
   "0": "editor.tsx",
-  "1": "App.tsx",
+  "1": "package.json",
   "2": "types.ts",
   "3": "store.ts",
   "4": "index.ts",
@@ -15,10 +15,7 @@
   "13": ".claude/CLAUDE.md",
   "14": "memorize.md",
   "15": "Smaker",
-  "16": "quantity.ts",
-  "17": "package.json",
-  "18": "devDependencies",
-  "19": "vite.config.ts",
-  "20": "scripts",
+  "16": "RecipePage.tsx",
+  "18": "quantity.ts",
   "21": "imports"
 }

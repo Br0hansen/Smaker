@@ -3,7 +3,7 @@
  * manuelt) og for redigering. Alt jobber på samme datamodell som lagres.
  */
 import { IonIcon } from '@ionic/react'
-import { add, alertCircleOutline, arrowDown, arrowUp, closeCircle, flameOutline, gitMergeOutline, imageOutline, sparklesOutline, timeOutline, trashOutline } from 'ionicons/icons'
+import { add, alertCircleOutline, checkmarkDone, arrowDown, arrowUp, closeCircle, flameOutline, gitMergeOutline, imageOutline, sparklesOutline, timeOutline, trashOutline } from 'ionicons/icons'
 import { useEffect, useRef, useState } from 'react'
 import type { RecipeInput } from '../data/store'
 import { intermediateLabel } from '../domain/grid'
@@ -12,6 +12,7 @@ import { autoLink, extractStepMeta, guessAction } from '../domain/linker'
 import { formatAmount, parseIngredientLine } from '../domain/quantity'
 import type { Ingredient, Recipe, Step } from '../domain/types'
 import { findIssues, type Issue } from '../domain/validate'
+import { aiAvailable, suggestSteps } from '../lib/ai'
 import { ClassicView } from './ClassicView'
 import { GridView } from './GridView'
 import { MissingMark, Segmented } from './ui'
@@ -66,7 +67,12 @@ export function BasicsFields({ draft, onChange, full = false }: { draft: Draft; 
         <div className="flex items-center gap-3">
           {draft.coverImage ? (
             <div className="relative">
-              <img src={draft.coverImage} alt="" className="size-24 rounded-xl object-cover shadow-card" />
+              <img
+                src={draft.coverImage}
+                alt=""
+                className="size-24 rounded-xl object-cover shadow-card"
+                onError={() => set({ coverImage: undefined })}
+              />
               <button className="absolute -top-2 -right-2 text-2xl text-ink" onClick={() => set({ coverImage: undefined })} aria-label="Fjern bilde">
                 <IonIcon icon={closeCircle} />
               </button>
@@ -224,11 +230,28 @@ export function StepsEditor({
   steps,
   ingredients,
   onChange,
+  recipeTitle = '',
 }: {
   steps: Step[]
   ingredients: Ingredient[]
   onChange: (steps: Step[]) => void
+  /** Brukes når Claude skal foreslå fremgangsmåte. */
+  recipeTitle?: string
 }) {
+  const [suggesting, setSuggesting] = useState(false)
+  const [suggestError, setSuggestError] = useState<string | null>(null)
+  const suggest = async () => {
+    setSuggesting(true)
+    setSuggestError(null)
+    try {
+      onChange(await suggestSteps(recipeTitle, ingredients))
+    } catch (e) {
+      setSuggestError((e as Error).message)
+    } finally {
+      setSuggesting(false)
+    }
+  }
+  const anySuggested = steps.some((s) => s.suggested)
   // Steg der brukeren har koblet selv, røres ikke av automatikken
   const [touched, setTouched] = useState<Set<string>>(new Set())
   const touch = (id: string) => setTouched((t) => new Set(t).add(id))
@@ -276,15 +299,45 @@ export function StepsEditor({
         )}
       </div>
 
+      {steps.length === 0 && ingredients.length > 0 && aiAvailable && (
+        <div className="flex flex-col gap-3 rounded-2xl bg-plum-soft p-4">
+          <p className="font-bold text-ink">Mangler oppskriften fremgangsmåte?</p>
+          <p className="text-[0.95rem] text-ink-2">
+            Vanlig for oppskrifter fra TikTok, der stegene bare vises i videoen. Claude kan foreslå en fremgangsmåte ut fra ingrediensene. Forslaget merkes, og tider og temperaturer fyller vi aldri inn.
+          </p>
+          {suggestError && <p role="alert" className="font-bold text-tomato">{suggestError}</p>}
+          <button className="btn btn-primary self-start" onClick={suggest} disabled={suggesting}>
+            <IonIcon icon={sparklesOutline} aria-hidden /> {suggesting ? 'Lager forslag …' : 'Foreslå fremgangsmåte'}
+          </button>
+        </div>
+      )}
+      {anySuggested && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-plum-soft p-4">
+          <p className="text-[0.95rem] text-ink">
+            <strong>Stegene merket «Forslag» er laget av Claude.</strong> Rett dem, og godkjenn når de stemmer.
+          </p>
+          <button className="btn btn-secondary min-h-10 text-[0.9rem]" onClick={() => onChange(steps.map((s) => ({ ...s, suggested: false })))}>
+            <IonIcon icon={checkmarkDone} aria-hidden /> Godkjenn alle
+          </button>
+        </div>
+      )}
+
       <ol className="flex flex-col gap-4">
         {steps.map((s, i) => (
           <li key={s.id} className="flex flex-col gap-3 rounded-[var(--radius-card)] bg-card p-4 shadow-card">
             <div className="flex items-start gap-3">
-              <span className="mt-2 grid size-9 shrink-0 place-items-center rounded-full bg-tomato-soft font-display text-lg font-semibold text-tomato">{i + 1}</span>
+              <span className="mt-2 flex shrink-0 flex-col items-center gap-1">
+                <span className="grid size-9 place-items-center rounded-full bg-tomato-soft font-display text-lg font-semibold text-tomato">{i + 1}</span>
+                {s.suggested && (
+                  <button className="chip min-h-6 bg-plum px-2 text-[0.7rem] text-white" onClick={() => patch(s.id, { suggested: false })} title="Trykk for å godkjenne">
+                    Forslag
+                  </button>
+                )}
+              </span>
               <textarea
                 className="field min-h-20 flex-1 text-[1.05rem]"
                 value={s.text}
-                onChange={(e) => patch(s.id, { text: e.target.value })}
+                onChange={(e) => patch(s.id, { text: e.target.value, suggested: false })}
                 onBlur={() => {
                   if (!s.text.trim()) return
                   const meta = extractStepMeta(s.text)

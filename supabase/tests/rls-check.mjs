@@ -120,3 +120,19 @@ check('slettet oppskrift forsvinner fra listen', (await as(C, `select smaker_get
 await db.exec(`insert into smaker_ai_usage (user_id, model, input_tokens, output_tokens) values ('${A}', 'test', 1, 1), ('${B}', 'test', 1, 1)`)
 check('A ser bare egen bruk av bildelesing', (await as(A, `select user_id from smaker_ai_usage`)).every((r) => r.user_id === A))
 await expectFail('brukere kan ikke skrive bruk selv (bare Edge Function-en)', () => as(A, `insert into smaker_ai_usage (user_id, model) values ($1, 'juks')`, [A]))
+
+// ---------- Foreslåtte steg og kildelenke ----------
+{
+  const r2 = uuid(), i2 = uuid(), s2a = uuid()
+  const [{ smaker_save_recipe: saved3 }] = await as(C, `select smaker_save_recipe($1)`, [JSON.stringify({
+    id: r2, familyId: famC, title: 'Fra nett', sourceUrl: 'https://www.matprat.no/oppskrifter/kos/vafler/', categories: [], version: null,
+    ingredients: [{ id: i2, name: 'egg', amount: 2 }],
+    steps: [{ id: s2a, text: 'Pisk eggene', action: 'Pisk', suggested: true, inputs: [{ kind: 'ingredient', id: i2 }] }],
+    attachments: [],
+  })])
+  check('kildelenke lagres og kommer tilbake', saved3.sourceUrl === 'https://www.matprat.no/oppskrifter/kos/vafler/')
+  check('foreslått steg merkes og kommer tilbake', saved3.steps[0].suggested === true)
+  const [{ smaker_save_recipe: saved4 }] = await as(C, `select smaker_save_recipe($1)`, [JSON.stringify({ ...saved3, steps: [{ ...saved3.steps[0], suggested: false }] })])
+  check('godkjent steg mister merket', saved4.steps[0].suggested === false && saved4.version === 2)
+  await expectFail('kildelenke må være http(s)', () => as(C, `select smaker_save_recipe($1)`, [JSON.stringify({ ...saved4, id: uuid(), version: null, sourceUrl: 'javascript:alert(1)', ingredients: [], steps: [] })]))
+}

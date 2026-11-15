@@ -1,6 +1,6 @@
 import { IonIcon } from '@ionic/react'
 import { add, remove } from 'ionicons/icons'
-import type { ReactNode } from 'react'
+import { useState, type ReactNode } from 'react'
 import type { FamilyMember, Recipe } from '../domain/types'
 
 /** Fargepar for omslag og spor i rutenettet. */
@@ -23,8 +23,10 @@ function hash(s: string): number {
  * Gir hver oppskrift et eget, gjenkjennelig utseende uten at noen må ta bilde.
  */
 export function RecipeCover({ recipe, className = '', large = false }: { recipe: Pick<Recipe, 'id' | 'title' | 'coverImage'>; className?: string; large?: boolean }) {
-  if (recipe.coverImage) {
-    return <img src={recipe.coverImage} alt="" className={`size-full object-cover ${className}`} />
+  // Bilder fra nettsider kan bli borte eller blokkeres – da vises duken i stedet
+  const [broken, setBroken] = useState<string | null>(null)
+  if (recipe.coverImage && broken !== recipe.coverImage) {
+    return <img src={recipe.coverImage} alt="" onError={() => setBroken(recipe.coverImage!)} className={`size-full object-cover ${className}`} />
   }
   const t = TONES[hash(recipe.id) % TONES.length]
   const initial = recipe.title.trim().replace(/^(bestemors|mammas|pappas|mormors|farmors|morfars|farfars|tantes|onkels)\s+/i, '')[0] ?? '?'

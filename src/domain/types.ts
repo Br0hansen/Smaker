@@ -47,6 +47,11 @@ export interface Step {
   inputs: StepInput[]
   /** Navn på mellomproduktet steget lager, f.eks. "Saus" eller "Røre". */
   produces?: string
+  /**
+   * true når steget er foreslått av Claude (originalen manglet fremgangsmåte).
+   * Vises som «Forslag» til noen godkjenner eller redigerer det.
+   */
+  suggested?: boolean
   durationMin?: number | null
   durationMaxMin?: number | null
   temperatureC?: number | null
@@ -70,6 +75,8 @@ export interface Recipe {
   description?: string
   /** Personlig historie: "Bestemor lagde disse hver søndag på hytta." */
   story?: string
+  /** Nettsiden oppskriften ble hentet fra. */
+  sourceUrl?: string
   /** Hvem i familien oppskriften stammer fra: "Bestemor", "Mamma". */
   origin?: string
   servings: number | null

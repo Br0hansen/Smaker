@@ -68,3 +68,8 @@ Nyeste nederst. Hver beslutning: Kontekst, Alternativer, Beslutning, Begrunnelse
 - **Alternativer:** Tesseract.js (offline, svak på håndskrift); OpenAI mini/nano; Claude Haiku 5.5; Claude Sonnet 5.5. Brukeren valgte Sonnet 5.5 for alt (best på håndskrift blant alternativene som ble vurdert; ~0,1–0,2 kr per bilde).
 - **Beslutning:** Edge Function `smaker-read-recipe` (verify_jwt) → `client.beta.messages.parse` med `betaZodOutputFormat`, effort `medium`, server-side fallback `"default"`. Modellen refererer til ingredienser/steg med indekser; klienten (`fromAiRead.ts`) gir UUID-er og validerer koblinger. Døgngrense 40 per bruker, logg i `smaker_ai_usage`.
 - **Begrunnelse:** Nøkkelen holdes på serveren, kostnaden er begrenset, og resultatet går rett inn i samme kontrollskjema som innliming. Modellkallet er isolert i `readWithClaude`, så en annen leverandør kan sammenlignes senere.
+
+## 2026-11-15 — Lenkeimport og foreslått fremgangsmåte
+- **Kontekst:** Brukeren vil lime inn lenker til oppskriftssider, og TikTok-oppskrifter mangler ofte fremgangsmåte i teksten.
+- **Beslutning:** Lenker hentes i Edge Function-en (CORS, vern mot interne adresser, 3 MB, 12 s). schema.org/Recipe (JSON-LD) leses deterministisk – ingen modellkostnad; ellers leser Claude sideteksten. Manglende steg kan foreslås av Claude på brukerens forespørsel; `smaker_steps.suggested` merker dem til de godkjennes/redigeres. Tider/temperaturer i forslag settes alltid til null.
+- **Begrunnelse:** Det meste av norske oppskriftssider har JSON-LD, så de fleste lenker er gratis og eksakte. Merking holder skillet mellom original og gjetning tydelig for familien.

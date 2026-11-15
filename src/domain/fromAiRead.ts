@@ -74,42 +74,7 @@ export function draftFromAiRead(read: AiRecipeRead): RecipeDraft {
     if (i.name?.trim()) ingIdByIndex.set(idx, ingredients[k++].id)
   })
 
-  const rawSteps = read.steps.filter((s) => s.text?.trim())
-  const stepIds = rawSteps.map(() => newId())
-
-  let steps: Step[] = rawSteps.map((s, i) => {
-    const inputs: StepInput[] = []
-    for (const j of s.buildsOnSteps ?? []) {
-      // Bare tidligere steg – ellers kunne grafen fått sirkler
-      if (Number.isInteger(j) && j >= 0 && j < i && !inputs.some((x) => x.id === stepIds[j])) {
-        inputs.push({ kind: 'step', id: stepIds[j] })
-      }
-    }
-    for (const j of s.ingredientIndexes ?? []) {
-      const id = ingIdByIndex.get(j)
-      if (id && !inputs.some((x) => x.id === id)) {
-        inputs.push({ kind: 'ingredient', id })
-      }
-    }
-    const min = positive(s.durationMin)
-    const max = positive(s.durationMaxMin)
-    return {
-      id: stepIds[i],
-      text: s.text.trim(),
-      action: clean(s.action) ?? guessAction(s.text),
-      inputs,
-      produces: clean(s.produces),
-      durationMin: min,
-      durationMaxMin: min != null && max != null && max > min ? max : null,
-      temperatureC: s.temperatureC ?? null,
-    }
-  })
-
-  // Modellen koblet ingenting? Bruk samme automatikk som for innlimt tekst.
-  if (steps.length > 0 && steps.every((s) => s.inputs.length === 0)) {
-    const linked = autoLink(ingredients, steps.map((s) => ({ id: s.id, text: s.text, action: s.action })))
-    steps = steps.map((s, i) => ({ ...s, inputs: linked[i].inputs }))
-  }
+  const steps = stepsFromAi(read.steps, ingredients, ingIdByIndex)
 
   return {
     title: read.title?.trim() ?? '',
@@ -122,4 +87,59 @@ export function draftFromAiRead(read: AiRecipeRead): RecipeDraft {
     ingredients,
     steps,
   }
+}
+
+type AiStep = AiRecipeRead['steps'][number]
+
+/**
+ * Modellens steg (med indekser) → appens steg (med ID-er og gyldige koblinger).
+ * Brukes både for avlest oppskrift og for foreslått fremgangsmåte.
+ */
+function stepsFromAi(aiSteps: AiStep[], ingredients: Ingredient[], ingIdByIndex: Map<number, string>, suggested = false): Step[] {
+  const rawSteps = aiSteps.filter((s) => s.text?.trim())
+  const stepIds = rawSteps.map(() => newId())
+
+  let steps: Step[] = rawSteps.map((s, i) => {
+    const inputs: StepInput[] = []
+    for (const j of s.buildsOnSteps ?? []) {
+      // Bare tidligere steg – ellers kunne grafen fått sirkler
+      if (Number.isInteger(j) && j >= 0 && j < i && !inputs.some((x) => x.id === stepIds[j])) {
+        inputs.push({ kind: 'step', id: stepIds[j] })
+      }
+    }
+    for (const j of s.ingredientIndexes ?? []) {
+      const id = ingIdByIndex.get(j)
+      if (id && !inputs.some((x) => x.id === id)) inputs.push({ kind: 'ingredient', id })
+    }
+    const min = positive(s.durationMin)
+    const max = positive(s.durationMaxMin)
+    return {
+      id: stepIds[i],
+      text: s.text.trim(),
+      action: clean(s.action) ?? guessAction(s.text),
+      inputs,
+      produces: clean(s.produces),
+      durationMin: min,
+      durationMaxMin: min != null && max != null && max > min ? max : null,
+      temperatureC: s.temperatureC ?? null,
+      ...(suggested ? { suggested: true } : {}),
+    }
+  })
+
+  // Modellen koblet ingenting? Bruk samme automatikk som for innlimt tekst.
+  if (steps.length > 0 && steps.every((s) => s.inputs.length === 0)) {
+    const linked = autoLink(ingredients, steps.map((s) => ({ id: s.id, text: s.text, action: s.action })))
+    steps = steps.map((s, i) => ({ ...s, inputs: linked[i].inputs }))
+  }
+  return steps
+}
+
+/**
+ * Foreslått fremgangsmåte fra Claude → steg merket «Forslag».
+ * Indeksene viser til rekkefølgen ingrediensene ble sendt i. Tider og
+ * temperaturer fjernes uansett – de skal ikke gjettes.
+ */
+export function stepsFromSuggestion(aiSteps: AiStep[], ingredients: Ingredient[]): Step[] {
+  const ingIdByIndex = new Map(ingredients.map((ing, i) => [i, ing.id] as const))
+  return stepsFromAi(aiSteps, ingredients, ingIdByIndex, true).map((s) => ({ ...s, durationMin: null, durationMaxMin: null, temperatureC: null }))
 }

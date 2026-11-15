@@ -1,10 +1,11 @@
-import { IonIcon } from '@ionic/react'
+import { IonIcon, useIonRouter } from '@ionic/react'
 import { clipboardOutline, sparkles } from 'ionicons/icons'
 import { useState } from 'react'
 import { type Draft } from '../components/editor'
 import { FormPage } from '../components/FormPage'
 import { ReviewForm, SaveButton } from '../components/ReviewForm'
 import { parseRecipeText } from '../domain/parseRecipeText'
+import { aiAvailable, asUrl } from '../lib/ai'
 
 const EXAMPLE = `Kremet kyllingpasta
 4 porsjoner · Tid: 30 min
@@ -30,6 +31,8 @@ Fremgangsmåte
 export default function PastePage() {
   const [text, setText] = useState('')
   const [draft, setDraft] = useState<Draft | null>(null)
+  const router = useIonRouter()
+  const pastedUrl = asUrl(text)
   const canClipboard = typeof navigator !== 'undefined' && !!navigator.clipboard?.readText
 
   const analyse = (t = text) => {
@@ -53,6 +56,14 @@ export default function PastePage() {
             aria-label="Oppskriftstekst"
             autoFocus
           />
+          {pastedUrl && aiAvailable && (
+            <div className="flex flex-col gap-2 rounded-2xl bg-sea-soft p-4">
+              <p className="font-bold text-ink">Dette er en lenke.</p>
+              <button className="btn btn-primary self-start" onClick={() => router.push(`/ny/lenke?url=${encodeURIComponent(pastedUrl)}`, 'forward', 'replace')}>
+                Hent oppskriften fra siden
+              </button>
+            </div>
+          )}
           <div className="flex flex-wrap gap-3">
             {canClipboard && (
               <button

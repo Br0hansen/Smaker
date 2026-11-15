@@ -80,6 +80,11 @@ export default function RecipePage() {
               )}
               <h1 className="text-[2.3rem] leading-[1.05] font-semibold md:text-[3.2rem]">{recipe.title}</h1>
               {recipe.description && <p className="text-[1.1rem] text-ink-2">{recipe.description}</p>}
+              {recipe.sourceUrl && (
+                <a href={recipe.sourceUrl} target="_blank" rel="noreferrer noopener" className="inline-flex items-center gap-1.5 self-start font-bold text-sea underline underline-offset-4">
+                  Kilde: {(() => { try { return new URL(recipe.sourceUrl).hostname.replace(/^www\./, '') } catch { return recipe.sourceUrl } })()} ↗
+                </a>
+              )}
               <dl className="flex flex-wrap gap-x-6 gap-y-2 text-ink-2">
                 {recipe.totalMinutes != null && (
                   <div className="flex items-center gap-2">
