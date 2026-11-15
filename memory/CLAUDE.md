@@ -41,3 +41,10 @@ React + TypeScript, Tailwind CSS v4, Vite, vite-plugin-pwa. Supabase (database, 
 `/resume`, `/save`, `/memorize`, `/commit` – se `.claude/commands/`.
 
 ## Permanent facts
+- [[recipe-grid]]: rutenettet beregnes fra grafen, algoritmen og visningsregler
+- [[datamodell]]: oppskrift som graf, Postgres-skjema og RLS
+- Ionic sine komponentstiler (shadow/scoped, ulagdelt) overstyrer Tailwind-utilities som `md:hidden` på `Ion*`-elementer – skjul dem i koden (`useMediaQuery`) i stedet
+- Ionic CSS importeres i `@layer ionic` under Tailwind-utilities, ellers vinner Ionic sin typography.css over klassene våre
+- `@ionic/react-router` 9 krever React Router 6 (ikke 7)
+- Playwright i cloud-maskinen: bruk `require('playwright')` (CommonJS); ESM-import finner den ikke
+- Lokal Postgres kan ikke kjøre som root her – bruk PGlite for databasetester

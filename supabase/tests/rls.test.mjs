@@ -1,0 +1,72 @@
+// Tester migrasjonen og Row Level Security i PGlite (Postgres i WebAssembly) med en
+// minimal etterligning av Supabase sine auth- og storage-skjemaer. Kjør: npm run test:db
+import { PGlite } from '@electric-sql/pglite'
+import { pgcrypto } from '@electric-sql/pglite/contrib/pgcrypto'
+import { readdirSync, readFileSync } from 'node:fs'
+import { dirname, join } from 'node:path'
+import { fileURLToPath } from 'node:url'
+const MIG = join(dirname(fileURLToPath(import.meta.url)), '../migrations')
+
+const db = new PGlite({ extensions: { pgcrypto } })
+const A = '00000000-0000-0000-0000-00000000000a', B = '00000000-0000-0000-0000-00000000000b'
+
+// --- Minimal etterligning av Supabase ---
+await db.exec(`
+  create role anon nologin; create role authenticated nologin;
+  create schema extensions; create schema auth; create schema storage;
+  grant usage on schema public, extensions, storage to authenticated, anon;
+  grant usage on schema auth to authenticated;
+  create table auth.users (id uuid primary key, raw_user_meta_data jsonb default '{}');
+  create function auth.uid() returns uuid language sql stable as $$ select nullif(current_setting('request.jwt.claim.sub', true), '')::uuid $$;
+  grant execute on function auth.uid() to authenticated, anon;
+  create table storage.buckets (id text primary key, name text, public boolean);
+  create table storage.objects (id uuid primary key default gen_random_uuid(), bucket_id text, name text);
+  alter table storage.objects enable row level security; grant select, insert, delete on storage.objects to authenticated;
+  create function storage.foldername(name text) returns text[] language sql immutable as $$ select string_to_array(name, '/') $$;
+  alter default privileges in schema public grant all on tables to authenticated;
+  insert into auth.users values ('${A}', '{"name":"Anne"}'), ('${B}', '{"name":"Bjørn"}');
+`)
+for (const f of readdirSync(MIG).sort()) await db.exec(readFileSync(join(MIG, f), 'utf8'))
+console.log('✓ migrasjonen kjørte')
+
+const as = async (uid, sql, params) => {
+  await db.exec(`reset role; set role authenticated; select set_config('request.jwt.claim.sub', '${uid}', false);`)
+  try { return (await db.query(sql, params)).rows } finally { await db.exec('reset role') }
+}
+const expectFail = async (label, fn) => { try { await fn(); console.log('✗ FEIL – burde feilet:', label); process.exitCode = 1 } catch (e) { console.log('✓', label, '→', e.message.split('\n')[0]) } }
+const check = (label, cond) => { console.log(cond ? '✓' : '✗ FEIL –', label); if (!cond) process.exitCode = 1 }
+
+const [fam] = await as(A, `insert into families (name) values ('Familien A') returning id`)
+check('A blir eier automatisk', (await as(A, `select role, display_name from family_members`))[0]?.role === 'owner')
+const [rec] = await as(A, `insert into recipes (family_id, title) values ($1, 'Vafler') returning id`, [fam.id])
+const [i1] = await as(A, `insert into ingredients (recipe_id, position, name, amount, unit) values ($1, 0, 'melk', 5, 'dl') returning id`, [rec.id])
+const [s1] = await as(A, `insert into steps (recipe_id, position, text, action) values ($1, 0, 'Pisk', 'Pisk') returning id`, [rec.id])
+const [s2] = await as(A, `insert into steps (recipe_id, position, text, action) values ($1, 1, 'Stek', 'Stek') returning id`, [rec.id])
+await as(A, `insert into step_inputs (step_id, position, ingredient_id) values ($1, 0, $2)`, [s1.id, i1.id])
+await as(A, `insert into step_inputs (step_id, position, input_step_id) values ($1, 0, $2)`, [s2.id, s1.id])
+check('A ser egen oppskrift', (await as(A, `select * from recipes`)).length === 1)
+await expectFail('steg kan ikke bygge på senere steg', () => as(A, `insert into step_inputs (step_id, position, input_step_id) values ($1, 1, $2)`, [s1.id, s2.id]))
+
+check('B ser IKKE familien', (await as(B, `select * from families`)).length === 0)
+check('B ser IKKE oppskriften', (await as(B, `select * from recipes`)).length === 0)
+check('B ser IKKE ingrediensene', (await as(B, `select * from ingredients`)).length === 0)
+await expectFail('B kan ikke legge oppskrift i A sin familie', () => as(B, `insert into recipes (family_id, title) values ($1, 'Inntrenger')`, [fam.id]))
+await expectFail('B kan ikke melde seg inn selv', () => as(B, `insert into family_members (family_id, user_id, display_name) values ($1, $2, 'B')`, [fam.id, B]))
+await expectFail('B kan ikke lage invitasjon', () => as(B, `select create_family_invite($1)`, [fam.id]))
+await expectFail('B kan ikke favorisere A sin oppskrift', () => as(B, `insert into favorites (recipe_id) values ($1)`, [rec.id]))
+check('B kan ikke oppdatere oppskriften', (await as(B, `update recipes set title = 'Hacket' where id = $1 returning id`, [rec.id])).length === 0)
+
+const [{ create_family_invite: token }] = await as(A, `select create_family_invite($1)`, [fam.id])
+check('A får et invitasjonstoken', typeof token === 'string' && token.length > 20)
+check('Bare hash lagres', (await as(A, `select token_hash from family_invites`))[0].token_hash !== token)
+await expectFail('feil token avvises', () => as(B, `select accept_family_invite('feil', 'Bjørn')`))
+await as(B, `select accept_family_invite($1, 'Bjørn')`, [token])
+check('B ser oppskriften etter invitasjon', (await as(B, `select title from recipes`))[0]?.title === 'Vafler')
+check('B er vanlig medlem', (await as(B, `select role from family_members where user_id = $1`, [B]))[0]?.role === 'member')
+await expectFail('invitasjonen kan ikke brukes to ganger', () => as(B, `select accept_family_invite($1, 'Bjørn igjen')`, [token]))
+check('B kan ikke gjøre seg selv til admin', (await as(B, `update family_members set role = 'admin' where user_id = $1 returning role`, [B]).catch(() => [])).length === 0)
+await as(B, `insert into favorites (recipe_id) values ($1)`, [rec.id])
+check('B kan favorisere nå', (await as(B, `select * from favorites`)).length === 1)
+check('A ser ikke B sine favoritter', (await as(A, `select * from favorites`)).length === 0)
+check('Bilde i familiens mappe er lesbart', (await as(B, `insert into storage.objects (bucket_id, name) values ('recipe-media', $1) returning id`, [`${fam.id}/vafler.jpg`])).length === 1)
+await expectFail('Bilde i fremmed mappe avvises', () => as(B, `insert into storage.objects (bucket_id, name) values ('recipe-media', $1)`, ['00000000-0000-0000-0000-000000000099/x.jpg']))

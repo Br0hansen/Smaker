@@ -17,3 +17,7 @@ Kommandoer: `/resume` ved start av en økt, `/memorize` for å feste noe midt i 
 
 ## Konvensjoner
 - Brukergrensesnitt og notater på norsk (bokmål).
+- **Mobil først.** Grunnstiler er for mobil, `sm:`/`md:` legger til. Sjekk alltid på 360 px bredde før større skjermer.
+- Recipe Grid og klassisk visning utledes alltid fra de samme oppskriftsdataene – lagre aldri layout.
+- Finn aldri på mengder eller tider ved tolking. Manglende informasjon markeres (`.missing`).
+- Kjør `npm test` og `npm run test:db` etter endringer i `src/domain/` eller `supabase/`.

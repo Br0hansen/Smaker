@@ -1,0 +1,196 @@
+/* Lagrekkefølge: Ionic legges under Tailwind-utilities, så klassene våre vinner. */
+@layer theme, base, ionic, components, utilities;
+
+@import '@ionic/react/css/core.css' layer(ionic);
+@import '@ionic/react/css/normalize.css' layer(ionic);
+@import '@ionic/react/css/structure.css' layer(ionic);
+@import '@ionic/react/css/typography.css' layer(ionic);
+
+@import 'tailwindcss';
+
+/* ------------------------------------------------------------------
+   Designtokens – "kjøkkenpapir": varmt, rolig, lettlest.
+   ------------------------------------------------------------------ */
+@theme {
+  --font-display: 'Fraunces Variable', 'Iowan Old Style', Georgia, serif;
+  --font-sans: 'Atkinson Hyperlegible', ui-sans-serif, system-ui, sans-serif;
+
+  --color-paper: #fbf6ee;
+  --color-paper-2: #f3eadc;
+  --color-card: #fffdf9;
+  --color-ink: #2a211c;
+  --color-ink-2: #5c4f46;
+  --color-ink-3: #75665b;
+  --color-line: #e7dccd;
+  --color-line-2: #d8c9b6;
+
+  --color-tomato: #b4472a;
+  --color-tomato-deep: #93371f;
+  --color-tomato-soft: #f7ddd2;
+  --color-sage: #4f7356;
+  --color-sage-soft: #dfe9dc;
+  --color-saffron: #b07418;
+  --color-saffron-soft: #f8e7c5;
+  --color-plum: #75578a;
+  --color-plum-soft: #ebe1f0;
+  --color-sea: #3f6f7c;
+  --color-sea-soft: #d9e8ec;
+  --color-butter: #ffe08a;
+
+  --radius-card: 1.25rem;
+  --shadow-card: 0 1px 0 rgb(42 33 28 / 0.04), 0 8px 24px -12px rgb(42 33 28 / 0.18);
+  --shadow-lift: 0 2px 0 rgb(42 33 28 / 0.05), 0 18px 40px -18px rgb(42 33 28 / 0.35);
+}
+
+/* ------------------------------------------------------------------
+   Ionic-tema: samme farger og fonter som resten av appen.
+   ------------------------------------------------------------------ */
+:root {
+  --ion-font-family: var(--font-sans);
+  --ion-background-color: var(--color-paper);
+  --ion-background-color-rgb: 251, 246, 238;
+  --ion-text-color: var(--color-ink);
+  --ion-text-color-rgb: 42, 33, 28;
+  --ion-toolbar-background: var(--color-paper);
+  --ion-toolbar-border-color: var(--color-line);
+  --ion-item-background: transparent;
+  --ion-border-color: var(--color-line);
+  --ion-tab-bar-background: var(--color-card);
+  --ion-tab-bar-border-color: var(--color-line);
+  --ion-tab-bar-color: var(--color-ink-3);
+  --ion-tab-bar-color-selected: var(--color-tomato);
+  --ion-placeholder-color: var(--color-ink-3);
+
+  --ion-color-primary: #b4472a;
+  --ion-color-primary-rgb: 180, 71, 42;
+  --ion-color-primary-contrast: #ffffff;
+  --ion-color-primary-contrast-rgb: 255, 255, 255;
+  --ion-color-primary-shade: #9e3e25;
+  --ion-color-primary-tint: #bc593f;
+
+  --ion-color-medium: #75665b;
+  --ion-color-medium-rgb: 117, 102, 91;
+  --ion-color-medium-contrast: #ffffff;
+  --ion-color-medium-contrast-rgb: 255, 255, 255;
+  --ion-color-medium-shade: #675a50;
+  --ion-color-medium-tint: #83756b;
+}
+
+@layer base {
+  html {
+    /* 17px grunnstørrelse – litt større enn vanlig, for lesbarhet */
+    font-size: 106.25%;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    background: var(--color-paper);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3 {
+    font-family: var(--font-display);
+    font-optical-sizing: auto;
+    letter-spacing: -0.01em;
+    margin: 0;
+  }
+  :focus-visible {
+    outline: 3px solid color-mix(in oklab, var(--color-tomato) 70%, white);
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: var(--color-butter);
+  }
+}
+
+@layer components {
+  .page-wrap {
+    width: 100%;
+    max-width: 72rem;
+    margin-inline: auto;
+    padding-inline: 1rem;
+  }
+  @media (min-width: 768px) {
+    .page-wrap { padding-inline: 2rem; }
+  }
+
+  /* Rutete duk – omslag for oppskrifter uten bilde */
+  .gingham {
+    --g: color-mix(in oklab, var(--tone) 22%, transparent);
+    background-color: var(--tone-bg);
+    background-image:
+      repeating-linear-gradient(0deg, var(--g) 0 14px, transparent 14px 28px),
+      repeating-linear-gradient(90deg, var(--g) 0 14px, transparent 14px 28px);
+  }
+
+  .eyebrow {
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-ink-3);
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 3rem;
+    padding: 0 1.25rem;
+    border-radius: 999px;
+    font-weight: 700;
+    transition: transform 120ms ease, background-color 120ms ease, box-shadow 120ms ease;
+    -webkit-tap-highlight-color: transparent;
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+  .btn-primary { background: var(--color-tomato); color: white; box-shadow: 0 6px 16px -8px rgb(180 71 42 / 0.7); }
+  .btn-primary:hover { background: var(--color-tomato-deep); }
+  .btn-secondary { background: var(--color-card); color: var(--color-ink); box-shadow: inset 0 0 0 1.5px var(--color-line-2); }
+  .btn-secondary:hover { background: var(--color-paper-2); }
+  .btn-ghost { color: var(--color-ink-2); }
+  .btn-ghost:hover { background: var(--color-paper-2); }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    min-height: 2rem;
+    padding: 0 0.75rem;
+    border-radius: 999px;
+    font-size: 0.88rem;
+    font-weight: 600;
+    background: var(--color-paper-2);
+    color: var(--color-ink-2);
+  }
+
+  .field {
+    width: 100%;
+    min-height: 3rem;
+    padding: 0.7rem 0.9rem;
+    border-radius: 0.85rem;
+    background: var(--color-card);
+    box-shadow: inset 0 0 0 1.5px var(--color-line);
+    color: var(--color-ink);
+    transition: box-shadow 120ms ease;
+  }
+  .field:focus { outline: none; box-shadow: inset 0 0 0 2px var(--color-tomato); }
+  .field::placeholder { color: var(--color-ink-3); }
+
+  /* Markering av manglende informasjon */
+  .missing {
+    background-image: repeating-linear-gradient(135deg, rgb(176 116 24 / 0.12) 0 6px, transparent 6px 12px);
+    box-shadow: inset 0 0 0 1.5px rgb(176 116 24 / 0.55);
+  }
+
+  .no-scrollbar { scrollbar-width: none; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 1ms !important; animation-duration: 1ms !important; }
+}
