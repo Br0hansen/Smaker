@@ -136,11 +136,14 @@ export default function HomePage() {
 }
 
 function Rail({ recipes, isFav }: { recipes: Recipe[]; isFav: (id: string) => boolean }) {
+  // scroll-px: snappingen skal respektere innmargen, ellers havner første kort helt inntil kanten
   return (
-    <div className="no-scrollbar -mx-4 flex snap-x gap-4 overflow-x-auto px-4 pt-1 pb-3 md:-mx-8 md:px-8">
+    <div className="no-scrollbar -mx-4 flex snap-x scroll-px-4 gap-4 overflow-x-auto pt-1 pb-3 pl-4 md:-mx-8 md:scroll-px-8 md:pl-8">
       {recipes.map((r) => (
         <RecipeCard key={r.id} recipe={r} favorite={isFav(r.id)} variant="rail" />
       ))}
+      {/* Luft etter siste kort: avstanden (gap) + denne. Høyre innmarg brukes ikke – Safari ignorerer den i rader som ruller */}
+      <span aria-hidden className="w-px shrink-0 md:w-4" />
     </div>
   )
 }

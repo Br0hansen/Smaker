@@ -180,9 +180,9 @@
     "semantic_hash": ""
   },
   "src/pages/HomePage.tsx": {
-    "mtime": 1794752253.5419745,
-    "seen": 1794752655.933986,
-    "ast_hash": "74884b59b09d3f6a010821d5a31935c2",
+    "mtime": 1794765875.4095156,
+    "seen": 1794765916.3947117,
+    "ast_hash": "965fb0008b9948cb75319cb9098a9d5c",
     "semantic_hash": ""
   },
   "src/pages/ManualWizardPage.tsx": {

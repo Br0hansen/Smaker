@@ -1,7 +1,7 @@
 # Graph Report - Smaker  (2026-11-15)
 
 ## Corpus Check
-- 75 files · ~41,714 words
+- 75 files · ~41,757 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 7 file(s) not represented in the graph (top: (none) 5, .css 1, .lock 1)
 
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `bd037325`
+- Built from commit: `16bedeaf`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -47,10 +47,10 @@
 4. `RecipePage()` - 21 edges
 5. `newId()` - 21 edges
 6. `Recipe` - 19 edges
-7. `ManualWizardPage()` - 15 edges
-8. `HomePage()` - 15 edges
-9. `ReviewForm()` - 14 edges
-10. `App()` - 14 edges
+7. `HomePage()` - 15 edges
+8. `ManualWizardPage()` - 15 edges
+9. `App()` - 14 edges
+10. `ReviewForm()` - 14 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `Permanent facts` --references--> `useMediaQuery()`  [INFERRED]
@@ -61,8 +61,8 @@
   memory/data/datamodell.md → src/data/remote.ts
 - `Recipe Grid` --references--> `buildGrid()`  [INFERRED]
   memory/features/recipe-grid.md → src/domain/grid.ts
-- `SaveButton()` --calls--> `saveRecipe()`  [EXTRACTED]
-  src/components/ReviewForm.tsx → src/data/store.ts
+- `Issue` --references--> `Id`  [EXTRACTED]
+  src/domain/validate.ts → src/domain/types.ts
 
 ## Import Cycles
 - None detected.
