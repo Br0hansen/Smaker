@@ -52,3 +52,8 @@ Nyeste nederst. Hver beslutning: Kontekst, Alternativer, Beslutning, Begrunnelse
 - **Alternativer:** HashRouter (stygge URL-er, bryter magisk lenke med `#access_token`), egen domene, `404.html`-triks.
 - **Beslutning:** Actions-workflow som bygger med `VITE_BASE=/<repo>/`, kopierer `index.html` → `404.html`, og publiserer med `deploy-pages`. Ruter, PWA-scope, service worker og lenker følger `BASE_URL`.
 - **Begrunnelse:** Vanlige URL-er, magisk lenke virker (bruker URL-fragment), direkte lenker til oppskrifter og invitasjoner virker. Brukeren ga eksplisitt lov til å pushe til `main`.
+
+## 2026-11-15 — Pages fra gh-pages-branch (ikke Actions-artefakt)
+- **Kontekst:** `deploy-pages` krever at Pages er slått på i innstillingene. Workflow-tokenet kan ikke slå det på («Resource not accessible by integration»), og vi har ikke verktøy for repoinnstillinger.
+- **Beslutning:** Workflowen bygger og force-pusher `dist/` til `gh-pages` (med `.nojekyll` og `404.html`). Første `gh-pages` ble pushet fra Claude-økten for å utløse automatisk aktivering.
+- **Begrunnelse:** Virker med standard `GITHUB_TOKEN` (`contents: write`); en push til `gh-pages` aktiverer Pages på offentlige repoer.

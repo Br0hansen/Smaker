@@ -1,5 +1,5 @@
 # Bygger appen og publiserer den på GitHub Pages: https://<bruker>.github.io/<repo>/
-# Slår på Pages automatisk første gang (configure-pages med enablement).
+# Ferdigbygde filer legges på branchen gh-pages, som Pages serverer.
 name: Publiser på GitHub Pages
 
 on:
@@ -8,23 +8,17 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
   group: pages
   cancel-in-progress: true
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - name: Slå på GitHub Pages (første gang)
-        uses: actions/configure-pages@v5
-        with:
-          enablement: true
       - uses: actions/setup-node@v5
         with:
           node-version: 22
@@ -39,19 +33,17 @@ jobs:
         env:
           # Appen ligger under /<repo>/ på GitHub Pages
           VITE_BASE: /${{ github.event.repository.name }}/
-      # GitHub Pages har ingen SPA-støtte: ukjente adresser (f.eks. /oppskrift/123) får 404.html,
-      # så den må være selve appen.
-      - run: cp dist/index.html dist/404.html
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: dist
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Gjør klar for GitHub Pages
+        run: |
+          # Ingen SPA-støtte på Pages: ukjente adresser (f.eks. /oppskrift/123) får 404.html,
+          # så den må være selve appen. .nojekyll slår av Jekyll-behandling.
+          cp dist/index.html dist/404.html
+          touch dist/.nojekyll
+      - name: Publiser til gh-pages
+        working-directory: dist
+        run: |
+          git init -q -b gh-pages
+          git add -A
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" \
+            commit -q -m "Publiser ${GITHUB_SHA::7}"
+          git push -q -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git" gh-pages

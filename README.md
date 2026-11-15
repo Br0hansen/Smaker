@@ -50,9 +50,9 @@ RPC-er: `smaker_create_family`, `smaker_get_recipes`, `smaker_save_recipe` (hele
 
 ## Publisering (GitHub Pages)
 
-Appen publiseres automatisk til **https://br0hansen.github.io/Smaker/** når `main` oppdateres (`.github/workflows/deploy.yml`). Workflowen kjører testene, bygger med `VITE_BASE=/Smaker/` og kopierer `index.html` til `404.html`, så direkte lenker som `/Smaker/oppskrift/…` virker.
+Appen publiseres automatisk til **https://br0hansen.github.io/Smaker/** når `main` oppdateres (`.github/workflows/deploy.yml`). Workflowen kjører testene, bygger med `VITE_BASE=/Smaker/`, kopierer `index.html` til `404.html` (så direkte lenker som `/Smaker/oppskrift/…` virker) og legger resultatet på branchen `gh-pages`, som Pages serverer (Settings → Pages → Source: «Deploy from a branch», `gh-pages`, `/ (root)`).
 
-Én gang: **Settings → Pages → Source: GitHub Actions**. Legg også `https://br0hansen.github.io/Smaker/` til under Supabase → Authentication → URL Configuration → Redirect URLs.
+Legg også `https://br0hansen.github.io/Smaker/` til under Supabase → Authentication → URL Configuration → Redirect URLs.
 
 ## Arkitektur
 
