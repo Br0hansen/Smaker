@@ -46,3 +46,9 @@ Nyeste nederst. Hver beslutning: Kontekst, Alternativer, Beslutning, Begrunnelse
 - **Kontekst:** En oppskrift er mange rader (ingredienser, steg, koblinger). Delvis lagring ville gitt ødelagte rutenett.
 - **Beslutning:** `smaker_save_recipe` (SECURITY INVOKER, så RLS gjelder) erstatter alt i én transaksjon og lagrer versjon. Optimistisk samtidighet via versjonsnummer.
 - **Begrunnelse:** Atomisk, enkel klient, versjonshistorikk gratis.
+
+## 2026-11-15 — GitHub Pages med Actions, base-sti fra repo-navnet
+- **Kontekst:** Brukeren vil ha appen på GitHub Pages. Pages serverer under `/<repo>/` og har ingen SPA-fallback.
+- **Alternativer:** HashRouter (stygge URL-er, bryter magisk lenke med `#access_token`), egen domene, `404.html`-triks.
+- **Beslutning:** Actions-workflow som bygger med `VITE_BASE=/<repo>/`, kopierer `index.html` → `404.html`, og publiserer med `deploy-pages`. Ruter, PWA-scope, service worker og lenker følger `BASE_URL`.
+- **Begrunnelse:** Vanlige URL-er, magisk lenke virker (bruker URL-fragment), direkte lenker til oppskrifter og invitasjoner virker. Brukeren ga eksplisitt lov til å pushe til `main`.
