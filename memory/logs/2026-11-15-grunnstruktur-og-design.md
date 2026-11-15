@@ -31,7 +31,7 @@ Se [[decisions]]: minne i repoet, Graphify prosjektvis, Ionic for skall + Tailwi
 
 ## Endrede filer
 - `src/` – hele appen
-- `supabase/migrations/20261115000000_init.sql`, `supabase/tests/rls.test.mjs`
+- `supabase/migrations/20261115000000_init.sql`, `supabase/tests/rls-check.mjs`
 - `public/` – ikoner
 - `README.md`, `CLAUDE.md`, `memory/`
 

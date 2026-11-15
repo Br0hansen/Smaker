@@ -48,6 +48,7 @@ React + TypeScript, Tailwind CSS v4, Vite, vite-plugin-pwa. Supabase (database, 
 - Ionic sine komponentstiler (shadow/scoped, ulagdelt) overstyrer Tailwind-utilities som `md:hidden` på `Ion*`-elementer – skjul dem i koden (`useMediaQuery`) i stedet
 - Ionic CSS importeres i `@layer ionic` under Tailwind-utilities, ellers vinner Ionic sin typography.css over klassene våre
 - `@ionic/react-router` 9 krever React Router 6 (ikke 7)
+- Sjekk exit-koden til `npm test`, ikke bare «Tests N passed» – en fil Vitest ikke forstår gir «Failed Suites» mens alle tester passerer. Databasesjekken heter derfor `rls-check.mjs` (ikke `*.test.mjs`)
 - Playwright i cloud-maskinen: bruk `require('playwright')` (CommonJS); ESM-import finner den ikke
 - Lokal Postgres kan ikke kjøre som root her – bruk PGlite for databasetester
 - Cloud-maskinen når ikke supabase.co fra nettleseren: test UI-flyt mot Supabase med Playwright `page.route` som etterligner svarene
