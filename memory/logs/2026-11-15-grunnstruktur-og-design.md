@@ -37,3 +37,8 @@ Se [[decisions]]: minne i repoet, Graphify prosjektvis, Ionic for skall + Tailwi
 
 ## Notater opprettet eller oppdatert
 - [[recipe-grid]], [[datamodell]], [[decisions]], [[CLAUDE]]
+
+## Tillegg: Supabase
+- Opprettet Smaker-tabellene i DailyPep (migrasjonene `smaker_init` og `smaker_private_helpers`). Alt prefikset `smaker_`; hjelpefunksjoner i `smaker_private`.
+- Sikkerhetsrådgiveren: bare de to tilsiktede RPC-ene står igjen for Smaker.
+- Neste: `@supabase/supabase-js`, innlogging, og bytte `src/data/store.ts` til Supabase.

@@ -222,9 +222,9 @@
     "semantic_hash": ""
   },
   "supabase/tests/rls.test.mjs": {
-    "mtime": 1794745494.9032555,
-    "seen": 1794745529.8152738,
-    "ast_hash": "d8754b0810d969bd5634a687bcce2e9f",
+    "mtime": 1794745763.0154922,
+    "seen": 1794746066.288415,
+    "ast_hash": "49811bd92378fbf5360b8b9bbb549694",
     "semantic_hash": ""
   },
   "tsconfig.json": {
@@ -270,15 +270,15 @@
     "semantic_hash": ""
   },
   "CLAUDE.md": {
-    "mtime": 1794744132.8109987,
-    "seen": 1794745529.8152852,
-    "ast_hash": "003e411a4600dab9e00e4e6076c54da5",
+    "mtime": 1794745575.867803,
+    "seen": 1794746066.2886996,
+    "ast_hash": "280991231a6c5b60f4db303fb6eeeb32",
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1794743603.3051667,
-    "seen": 1794745529.8152862,
-    "ast_hash": "a2635eca966c07a60d2a3952cfef98a5",
+    "mtime": 1794746064.683453,
+    "seen": 1794746066.2887018,
+    "ast_hash": "d5996d9f2803d27075c61e10bd6d5f5b",
     "semantic_hash": ""
   },
   "index.html": {
@@ -288,15 +288,15 @@
     "semantic_hash": ""
   },
   "memory/CLAUDE.md": {
-    "mtime": 1794744132.8022609,
-    "seen": 1794745529.8152883,
-    "ast_hash": "455ad96b012338696b0b9608a132f28b",
+    "mtime": 1794746064.6821628,
+    "seen": 1794746066.288727,
+    "ast_hash": "278c26e533bb17ba5bcb739235af8807",
     "semantic_hash": ""
   },
   "memory/architecture/decisions.md": {
-    "mtime": 1794744261.9494643,
-    "seen": 1794745529.8152893,
-    "ast_hash": "0dfe645b5ce0ba094b01d0c4380a3008",
+    "mtime": 1794746064.6815789,
+    "seen": 1794746066.2887292,
+    "ast_hash": "09878a16a2d58051bebe81bf4a987c64",
     "semantic_hash": ""
   },
   "memory/templates/note.md": {
@@ -333,6 +333,24 @@
     "mtime": 1794745110.3455148,
     "seen": 1794745529.8152957,
     "ast_hash": "8cc5f8bfe35e84f844b7cd0a55b301b6",
+    "semantic_hash": ""
+  },
+  "memory/data/datamodell.md": {
+    "mtime": 1794746064.6775715,
+    "seen": 1794746066.2887313,
+    "ast_hash": "d61ad2e71f82b898447a80177bf5d9a9",
+    "semantic_hash": ""
+  },
+  "memory/features/recipe-grid.md": {
+    "mtime": 1794745575.8530605,
+    "seen": 1794746066.288734,
+    "ast_hash": "19802624b814adba07622ab9a9177459",
+    "semantic_hash": ""
+  },
+  "memory/logs/2026-11-15-grunnstruktur-og-design.md": {
+    "mtime": 1794746064.6855717,
+    "seen": 1794746066.2887356,
+    "ast_hash": "6382b11cafe6f0e7733904339af44f77",
     "semantic_hash": ""
   },
   "package-lock.json": {

@@ -9,12 +9,14 @@ type: permanent
 
 # Datamodell
 
-Oppskrift = graf. TypeScript i `src/domain/types.ts`, Postgres i `supabase/migrations/20261115000000_init.sql`. Brukes av [[recipe-grid]]; beslutninger i [[decisions]].
+> **Delt prosjekt:** DailyPep deles med andre apper (`dailypep_*`, `ting_*`, `things_*`). Alt for Smaker har prefikset `smaker_` – tabeller, typer, funksjoner og bøtta `smaker-media`. Interne hjelpefunksjoner ligger i skjemaet `smaker_private` (ikke synlig i API-et). Bruk aldri «on all functions/tables in schema public» – det treffer de andre appene.
 
-- `ingredients` – kilder. `amount` null = ukjent/etter smak (vi gjetter aldri).
-- `steps` – `action` (kort, for rutenettet), `text` (full), `produces` (mellomprodukt), tid/temperatur valgfritt.
-- `step_inputs` – kant: ingrediens ELLER tidligere steg. Trigger håndhever «bare tidligere steg i samme oppskrift».
-- `recipe_versions` – fullt JSON-øyeblikksbilde per lagring. Gjenoppretting lagrer gammelt bilde som ny versjon.
-- Tilgang: RLS via `is_family_member`, `has_family_role`, `can_access_recipe` (security definer). Nye medlemmer kun via `accept_family_invite` (engangstoken, bare hash lagres, 7 dagers utløp).
-- Storage: privat bøtte `recipe-media`, mappe per familie (`<family_id>/…`).
-- Test: `npm run test:db` (PGlite + Supabase-etterligning, 23 sjekker).
+Oppskrift = graf. TypeScript i `src/domain/types.ts`, Postgres i `supabase/migrations/` (kjørt i Supabase-prosjektet **DailyPep**, `tgqcyfviukurtovtxphy`). Brukes av [[recipe-grid]]; beslutninger i [[decisions]].
+
+- `smaker_ingredients` – kilder. `amount` null = ukjent/etter smak (vi gjetter aldri).
+- `smaker_steps` – `action` (kort, for rutenettet), `text` (full), `produces` (mellomprodukt), tid/temperatur valgfritt.
+- `smaker_step_inputs` – kant: ingrediens ELLER tidligere steg. Trigger håndhever «bare tidligere steg i samme oppskrift».
+- `smaker_recipe_versions` – fullt JSON-øyeblikksbilde per lagring. Gjenoppretting lagrer gammelt bilde som ny versjon.
+- Tilgang: RLS via `smaker_private.smaker_is_family_member`, `…_has_family_role`, `…_can_access_recipe` (security definer). Nye medlemmer kun via RPC `smaker_accept_family_invite` (engangstoken, bare hash lagres, 7 dagers utløp).
+- Storage: privat bøtte `smaker-media`, mappe per familie (`<family_id>/…`).
+- Test: `npm run test:db` (PGlite + Supabase-etterligning, 25 sjekker).

@@ -14,7 +14,21 @@ npm run test:db    # migrasjon + Row Level Security i PGlite
 npm run build      # produksjonsbygg med service worker
 ```
 
-Appen kjører foreløpig på lokal lagring (`localStorage`) med eksempeloppskrifter. Supabase-skjemaet ligger klart i `supabase/migrations/`.
+Appen kjører foreløpig på lokal lagring (`localStorage`) med eksempeloppskrifter.
+
+### Supabase
+
+Tabellene ligger i Supabase-prosjektet **DailyPep**, som deles med andre apper. Derfor har alt for Smaker prefikset `smaker_`:
+
+| Tabell | Innhold |
+|---|---|
+| `smaker_families`, `smaker_family_members`, `smaker_family_invites` | Familiegrupper, roller (eier/admin/medlem), engangsinvitasjoner |
+| `smaker_recipes` | Oppskrift: navn, historie, opphav, porsjoner, tid, kategorier |
+| `smaker_ingredients`, `smaker_steps`, `smaker_step_inputs` | Grafen: ingredienser, steg, og hva som går inn i hvert steg |
+| `smaker_attachments` | Bilder og originalskanninger (filer i bøtta `smaker-media`) |
+| `smaker_favorites`, `smaker_recipe_versions` | Favoritter per person, versjonshistorikk |
+
+RPC-er: `smaker_create_family_invite`, `smaker_accept_family_invite`. Migrasjoner i `supabase/migrations/`, testet med `npm run test:db`.
 
 ## Arkitektur
 
@@ -46,7 +60,7 @@ Ferdig i denne runden:
 - Matlagingsmodus: stor tekst, ett steg, tidtakere med lyd/vibrasjon, skjermen holdes våken, porsjonsomregning
 - Innlegging: lim inn (tolking + automatisk kobling), bilde (originalen lagres; tekstgjenkjenning er et grensesnitt uten motor ennå), manuell veiviser i fire steg
 - Familieside med invitasjonslenke (demo), versjonshistorikk med gjenoppretting
-- Supabase-skjema med RLS, testet
+- Supabase-tabeller med RLS opprettet i DailyPep-prosjektet, testet
 
 Neste:
 - Koble på Supabase (auth, `save_recipe`-RPC som lagrer graf + versjon atomisk, sanntidssynk)
