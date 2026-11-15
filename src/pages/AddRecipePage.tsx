@@ -15,8 +15,8 @@ const METHODS = [
   {
     to: '/ny/bilde',
     icon: cameraOutline,
-    title: 'Ta bilde',
-    text: 'Av en håndskrevet lapp, et oppskriftskort eller en side i kokeboka. Originalen tas vare på.',
+    title: 'Ta bilde eller skjermbilde',
+    text: 'Håndskrevet lapp, oppskriftskort, kokebokside eller skjermbilde. Vi leser den for deg, og originalen tas vare på.',
     tone: 'bg-saffron-soft text-saffron',
   },
   {

@@ -1,26 +1,46 @@
 /**
- * Tekstgjenkjenning fra bilde.
+ * Bildelesing: sender bilder til Edge Function-en `smaker-read-recipe`, som
+ * lar Claude (Sonnet 5.5) lese oppskriften og svare i fast JSON-form.
+ * API-nøkkelen ligger i Supabase, aldri i appen.
  *
- * Grensesnittet er klart, men ingen motor er koblet til ennå. Aktuelle valg:
- *  - En Supabase Edge Function som sender bildet til en bilde-/språkmodell
- *    (gir best resultat på håndskrift og kan returnere strukturert JSON).
- *  - Tesseract.js lokalt i nettleseren (fungerer offline, svakere på håndskrift).
- *
- * Til da: brukeren skriver av teksten ved siden av bildet, og samme tolker som
- * for innliming lager oppskriften.
+ * I demomodus (uten Supabase) finnes ikke bildelesing – da skriver man av selv.
  */
-export interface OcrResult {
-  text: string
-}
+import { draftFromAiRead, type AiRecipeRead } from '../domain/fromAiRead'
+import type { RecipeDraft } from '../domain/parseRecipeText'
+import { supabase } from './supabase'
 
-export class OcrUnavailableError extends Error {
+export const ocrAvailable = !!supabase
+
+export class NotARecipeError extends Error {
   constructor() {
-    super('Tekstgjenkjenning er ikke tilgjengelig ennå.')
+    super('Vi fant ingen oppskrift på bildet.')
   }
 }
 
-export async function recognizeText(_image: string): Promise<OcrResult> {
-  throw new OcrUnavailableError()
+export interface ReadResult {
+  draft: RecipeDraft
+  /** Ord eller deler modellen ikke kunne lese sikkert – vises så de kan sjekkes. */
+  uncertain: string[]
 }
 
-export const ocrAvailable = false
+export async function readRecipeFromImages(dataUrls: string[]): Promise<ReadResult> {
+  if (!supabase) throw new Error('Bildelesing krever innlogging.')
+  const images = dataUrls.map((u) => {
+    const m = u.match(/^data:(image\/[a-z+]+);base64,(.+)$/)
+    if (!m) throw new Error('Ukjent bildeformat.')
+    return { mediaType: m[1], data: m[2] }
+  })
+  const { data, error } = await supabase.functions.invoke('smaker-read-recipe', { body: { images } })
+  if (error) {
+    let message = 'Klarte ikke å lese bildet. Prøv igjen.'
+    try {
+      const body = await (error as { context?: Response }).context?.json()
+      if (body?.error) message = body.error
+    } catch { /* ikke JSON – bruk standardmeldingen */ }
+    throw new Error(message)
+  }
+  const read = data?.recipe as AiRecipeRead | undefined
+  if (!read) throw new Error('Fikk ikke noe svar. Prøv igjen.')
+  if (!read.isRecipe) throw new NotARecipeError()
+  return { draft: draftFromAiRead(read), uncertain: read.uncertain ?? [] }
+}

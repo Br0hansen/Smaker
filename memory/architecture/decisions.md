@@ -62,3 +62,9 @@ Nyeste nederst. Hver beslutning: Kontekst, Alternativer, Beslutning, Begrunnelse
 - **Kontekst:** Brukeren meldte at «Oppskrifter»/«Familien» sluttet å virke etter frem-og-tilbake-trykk (på telefon). Egen fanelinje byttet side med `router.push(path, 'none', 'replace')` i én felles stabel. Ionic tolker retning `'none'` som fanebytte og forventer `IonTabs`; koden har egne sikkerhetsnett for sider som blir hengende usynlige. Feilen lot seg ikke gjenskape i Chromium (WebKit finnes ikke i cloud-maskinen).
 - **Beslutning:** `IonTabs` + `IonTabBar` for Hjem/Familien; detaljsider i ytre outlet. Etter lagring navigeres det med `'root'`, så «tilbake» går til kokeboka.
 - **Begrunnelse:** Ionic sitt eget, testede mønster for faner. 18 navigasjonssjekker (raske trykk med nedskrudd CPU, oppskrift/legg til/lagring → faner, direkte lenker, PC-meny) passerer.
+
+## 2026-11-15 — Bildelesing med Claude Sonnet 5.5 via Edge Function
+- **Kontekst:** Skjermbilder og håndskrevne oppskriftskort skal bli strukturerte oppskrifter. Vanlig OCR er svak på håndskrift og forstår ikke struktur.
+- **Alternativer:** Tesseract.js (offline, svak på håndskrift); OpenAI mini/nano; Claude Haiku 5.5; Claude Sonnet 5.5. Brukeren valgte Sonnet 5.5 for alt (best på håndskrift blant alternativene som ble vurdert; ~0,1–0,2 kr per bilde).
+- **Beslutning:** Edge Function `smaker-read-recipe` (verify_jwt) → `client.beta.messages.parse` med `betaZodOutputFormat`, effort `medium`, server-side fallback `"default"`. Modellen refererer til ingredienser/steg med indekser; klienten (`fromAiRead.ts`) gir UUID-er og validerer koblinger. Døgngrense 40 per bruker, logg i `smaker_ai_usage`.
+- **Begrunnelse:** Nøkkelen holdes på serveren, kostnaden er begrenset, og resultatet går rett inn i samme kontrollskjema som innliming. Modellkallet er isolert i `readWithClaude`, så en annen leverandør kan sammenlignes senere.

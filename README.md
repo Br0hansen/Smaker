@@ -46,6 +46,8 @@ Tabellene ligger i Supabase-prosjektet **DailyPep**, som deles med andre apper. 
 | `smaker_attachments` | Bilder og originalskanninger (filer i bøtta `smaker-media`) |
 | `smaker_favorites`, `smaker_recipe_versions` | Favoritter per person, versjonshistorikk |
 
+**Bildelesing:** Edge Function `smaker-read-recipe` (`supabase/functions/`) sender ett til fire bilder til Claude Sonnet 5.5 og får oppskriften tilbake som strukturert JSON (`src/domain/fromAiRead.ts` gjør den om til et utkast). Krever innlogget familiemedlem, maks 40 bilder per bruker per døgn, logget i `smaker_ai_usage`. API-nøkkelen settes som hemmelighet `ANTHROPIC_API_KEY` under Supabase → Edge Functions → Secrets.
+
 RPC-er: `smaker_create_family`, `smaker_get_recipes`, `smaker_save_recipe` (hele grafen + ny versjon i én transaksjon, avviser utdaterte endringer), `smaker_delete_recipe`, `smaker_create_family_invite`, `smaker_accept_family_invite`. Sanntid på `smaker_recipes`. Migrasjoner i `supabase/migrations/`, testet med `npm run test:db`.
 
 ## Publisering (GitHub Pages)
@@ -89,6 +91,5 @@ Ferdig i denne runden:
 - Siste kjente oppskrifter hurtigbufres per bruker, så de kan leses offline
 
 Neste:
-- Tekstgjenkjenning for bilder (Edge Function med bildemodell, eller Tesseract.js offline)
 - Offline-kø for endringer (lagring krever nett i dag), kodesplitting (Ionic gjør hovedbundelen stor)
 - Velge mellom flere familier i appen (i dag brukes den første eller sist valgte)

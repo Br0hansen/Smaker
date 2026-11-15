@@ -271,6 +271,17 @@
   .no-scrollbar::-webkit-scrollbar { display: none; }
 }
 
+/* Skannelinje over bildet mens oppskriften leses */
+.scan-line {
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 18%;
+  background: linear-gradient(to bottom, transparent, color-mix(in oklab, var(--color-butter) 70%, transparent), transparent);
+  animation: scan 1.6s ease-in-out infinite alternate;
+}
+@keyframes scan { from { transform: translateY(-20%); } to { transform: translateY(470%); } }
+
 @keyframes splash { 0% { transform: translateX(-100%); } 100% { transform: translateX(300%); } }
 
 @media (prefers-reduced-motion: reduce) {

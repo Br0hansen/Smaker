@@ -1,9 +1,9 @@
 {
   "0": "editor.tsx",
-  "1": "package.json",
+  "1": "App.tsx",
   "2": "types.ts",
   "3": "store.ts",
-  "4": "CookingModePage.tsx",
+  "4": "index.ts",
   "5": "remote.ts",
   "6": "Smaker – prosjektminne",
   "7": "compilerOptions",
@@ -15,5 +15,10 @@
   "13": ".claude/CLAUDE.md",
   "14": "memorize.md",
   "15": "Smaker",
-  "16": "RecipePage.tsx"
+  "16": "quantity.ts",
+  "17": "package.json",
+  "18": "devDependencies",
+  "19": "vite.config.ts",
+  "20": "scripts",
+  "21": "imports"
 }

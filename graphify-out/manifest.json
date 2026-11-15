@@ -156,9 +156,9 @@
     "semantic_hash": ""
   },
   "src/lib/ocr.ts": {
-    "mtime": 1794745050.9895577,
-    "seen": 1794745529.8152611,
-    "ast_hash": "0fe0dd57e207c705e2ffd7474c7cd011",
+    "mtime": 1794753288.1764395,
+    "seen": 1794753750.4861438,
+    "ast_hash": "4e1600c8483d4a080a6cd4999ffc8f9c",
     "semantic_hash": ""
   },
   "src/main.tsx": {
@@ -168,9 +168,9 @@
     "semantic_hash": ""
   },
   "src/pages/AddRecipePage.tsx": {
-    "mtime": 1794745305.5745974,
-    "seen": 1794745529.8152635,
-    "ast_hash": "64c12c91d550b4e94283952f9017e187",
+    "mtime": 1794753330.759231,
+    "seen": 1794753750.4862123,
+    "ast_hash": "bdb08ee561d57bdc2ad8f443efceb012",
     "semantic_hash": ""
   },
   "src/pages/CookingModePage.tsx": {
@@ -210,9 +210,9 @@
     "semantic_hash": ""
   },
   "src/pages/PhotoPage.tsx": {
-    "mtime": 1794746506.2493608,
-    "seen": 1794746987.898877,
-    "ast_hash": "6f3e1edefd9e645798a980a00405d6d9",
+    "mtime": 1794753288.178082,
+    "seen": 1794753750.4864745,
+    "ast_hash": "6df0e1559668128f214717d17b877f6e",
     "semantic_hash": ""
   },
   "src/pages/RecipePage.tsx": {
@@ -270,9 +270,9 @@
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1794747673.0505466,
-    "seen": 1794752655.9342256,
-    "ast_hash": "b6cc52f49026f2d9e7f200df1714abec",
+    "mtime": 1794753748.8577023,
+    "seen": 1794753750.4868605,
+    "ast_hash": "11015914a8eb8207a808b775af14c5c5",
     "semantic_hash": ""
   },
   "index.html": {
@@ -282,15 +282,15 @@
     "semantic_hash": ""
   },
   "memory/CLAUDE.md": {
-    "mtime": 1794752832.5933788,
-    "seen": 1794752833.4191725,
-    "ast_hash": "a9ccb171b4b9d10695507ffbe948a2a7",
+    "mtime": 1794753748.8801482,
+    "seen": 1794753750.4868922,
+    "ast_hash": "e4404a8c46150e86321bb3e61e2cd9dc",
     "semantic_hash": ""
   },
   "memory/architecture/decisions.md": {
-    "mtime": 1794752651.3297331,
-    "seen": 1794752655.9342456,
-    "ast_hash": "b904bff92377ba4d1b1419cfaedd51df",
+    "mtime": 1794753748.878805,
+    "seen": 1794753750.486895,
+    "ast_hash": "37263d4b7399f4d9f083373fbb5b6b77",
     "semantic_hash": ""
   },
   "memory/templates/note.md": {
@@ -390,9 +390,33 @@
     "semantic_hash": ""
   },
   "supabase/tests/rls-check.mjs": {
-    "mtime": 1794746348.687526,
-    "seen": 1794752655.9341033,
-    "ast_hash": "c291d6548e1935316256902b2a53bcd8",
+    "mtime": 1794753122.2722516,
+    "seen": 1794753750.4865239,
+    "ast_hash": "6a6030c8ff62e4b12d96f8e820f46bd8",
+    "semantic_hash": ""
+  },
+  "src/domain/fromAiRead.test.ts": {
+    "mtime": 1794753104.1563876,
+    "seen": 1794753750.4857912,
+    "ast_hash": "1d339000deb3398e3b92b3cdc90176a9",
+    "semantic_hash": ""
+  },
+  "src/domain/fromAiRead.ts": {
+    "mtime": 1794753104.1512644,
+    "seen": 1794753750.4857945,
+    "ast_hash": "7981687d0d543390b13fc2a9615bf5cd",
+    "semantic_hash": ""
+  },
+  "supabase/functions/smaker-read-recipe/deno.json": {
+    "mtime": 1794753161.3979235,
+    "seen": 1794753750.4865184,
+    "ast_hash": "92d46a886d81d68630ef6a971eb8e7a9",
+    "semantic_hash": ""
+  },
+  "supabase/functions/smaker-read-recipe/index.ts": {
+    "mtime": 1794753199.0098448,
+    "seen": 1794753750.486521,
+    "ast_hash": "0fdca0e591794f41ff027f64fc8e9f03",
     "semantic_hash": ""
   },
   "package-lock.json": {

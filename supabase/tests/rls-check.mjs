@@ -115,3 +115,8 @@ check('B kan ikke slette A sin favoritt', (await as(B, `delete from smaker_favor
 
 await as(C, `select smaker_delete_recipe($1)`, [rid])
 check('slettet oppskrift forsvinner fra listen', (await as(C, `select smaker_get_recipes($1)`, [famC]))[0].smaker_get_recipes.length === 0)
+
+// ---------- Bruk av bildelesing ----------
+await db.exec(`insert into smaker_ai_usage (user_id, model, input_tokens, output_tokens) values ('${A}', 'test', 1, 1), ('${B}', 'test', 1, 1)`)
+check('A ser bare egen bruk av bildelesing', (await as(A, `select user_id from smaker_ai_usage`)).every((r) => r.user_id === A))
+await expectFail('brukere kan ikke skrive bruk selv (bare Edge Function-en)', () => as(A, `insert into smaker_ai_usage (user_id, model) values ($1, 'juks')`, [A]))
