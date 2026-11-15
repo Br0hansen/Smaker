@@ -21,9 +21,13 @@ export class NotARecipeError extends Error {
 
 export interface ReadResult {
   draft: RecipeDraft & { coverImage?: string; sourceUrl?: string }
-  /** Det modellen ikke kunne lese sikkert – vises så det kan sjekkes. */
+  /** Det modellen ikke kunne lese sikkert, og omregnede mål – vises så det kan sjekkes. */
   uncertain: string[]
+  /** «engelsk» osv. når oppskriften er oversatt til norsk. */
+  translatedFrom?: string
 }
+
+const notes = (r: AiRecipeRead) => ({ uncertain: r.uncertain ?? [], translatedFrom: r.translatedFrom?.trim() || undefined })
 
 async function call<T>(body: Record<string, unknown>): Promise<T> {
   if (!supabase) throw new Error('Dette krever innlogging.')
@@ -47,7 +51,14 @@ export async function readRecipeFromImages(dataUrls: string[]): Promise<ReadResu
   })
   const data = await call<{ recipe: AiRecipeRead }>({ mode: 'images', images })
   if (!data.recipe?.isRecipe) throw new NotARecipeError('Vi fant ingen oppskrift på bildet. Prøv et skarpere bilde, eller skriv av selv.')
-  return { draft: draftFromAiRead(data.recipe), uncertain: data.recipe.uncertain ?? [] }
+  return { draft: draftFromAiRead(data.recipe), ...notes(data.recipe) }
+}
+
+/** Innlimt tekst på et annet språk → Claude leser og oversetter. */
+export async function readRecipeFromText(text: string): Promise<ReadResult> {
+  const data = await call<{ recipe: AiRecipeRead }>({ mode: 'text', text })
+  if (!data.recipe?.isRecipe) throw new NotARecipeError('Vi fant ingen oppskrift i teksten.')
+  return { draft: draftFromAiRead(data.recipe), ...notes(data.recipe) }
 }
 
 export async function importRecipeFromUrl(url: string): Promise<ReadResult & { source: 'structured' | 'ai' }> {
@@ -56,7 +67,7 @@ export async function importRecipeFromUrl(url: string): Promise<ReadResult & { s
     return { source: 'structured', draft: { ...draftFromWebRecipe(data.recipe), sourceUrl: data.url }, uncertain: [] }
   }
   if (!data.recipe?.isRecipe) throw new NotARecipeError('Vi fant ingen oppskrift på siden. Prøv å kopiere teksten og lime den inn i stedet.')
-  return { source: 'ai', draft: { ...draftFromAiRead(data.recipe), sourceUrl: data.url }, uncertain: data.recipe.uncertain ?? [] }
+  return { source: 'ai', draft: { ...draftFromAiRead(data.recipe), sourceUrl: data.url }, ...notes(data.recipe) }
 }
 
 export async function suggestSteps(title: string, ingredients: Ingredient[]): Promise<Step[]> {

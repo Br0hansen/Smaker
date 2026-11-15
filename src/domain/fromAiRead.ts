@@ -40,8 +40,10 @@ export interface AiRecipeRead {
     durationMaxMin: number | null
     temperatureC: number | null
   }[]
-  /** Ord eller deler modellen ikke kunne lese sikkert. */
+  /** Ord eller deler modellen ikke kunne lese sikkert, og mål som er regnet om. */
   uncertain: string[]
+  /** Språket originalen var på («engelsk»), hvis den ble oversatt. */
+  translatedFrom?: string | null
 }
 
 const clean = (s: string | null | undefined) => {

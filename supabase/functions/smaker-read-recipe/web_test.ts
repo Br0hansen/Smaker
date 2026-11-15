@@ -75,3 +75,18 @@ Deno.test('blokkerer interne adresser', () => {
   }
   for (const h of ['www.matprat.no', 'www.tiktok.com', '8.8.8.8']) assert(!blockedHost(h), h)
 })
+
+import { isNorwegianRecipe, pageLanguage, recipeAsText } from './web.ts'
+
+Deno.test('språk: språkmerke avgjør, ellers ordtest', () => {
+  const r = { name: 'Pancakes', description: null, ingredients: ['2 cups flour', '1 tbsp sugar', '1 cup milk', '2 eggs'], instructions: ['Whisk the eggs and milk.', 'Add flour and sugar and mix until smooth.', 'Bake in a hot pan.'], yield: '4', totalMinutes: 20, prepMinutes: null, categories: [], image: null }
+  assertEquals(pageLanguage('<html lang="en-US"><head>'), 'en')
+  assertEquals(isNorwegianRecipe(r, '<html lang="en-US">'), false)
+  assertEquals(isNorwegianRecipe(r, '<html>'), false)
+  const n = { ...r, name: 'Pannekaker', ingredients: ['2,5 dl hvetemel', '1 ss sukker', '5 dl melk', '3 egg'], instructions: ['Pisk egg og melk.', 'Rør inn mel og sukker til en klumpfri røre.', 'Stek tynne pannekaker i smør.'] }
+  assertEquals(isNorwegianRecipe(n, '<html lang="nb">'), true)
+  assertEquals(isNorwegianRecipe(n, '<html>'), true)
+  assertEquals(isNorwegianRecipe(n, '<html lang="sv">'), false) // svensk side → oversettes
+  assert(recipeAsText(r).includes('- 2 cups flour'))
+  assert(recipeAsText(r).includes('2. Add flour and sugar'))
+})

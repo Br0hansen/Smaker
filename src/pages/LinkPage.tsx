@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import { type Draft } from '../components/editor'
 import { FormPage } from '../components/FormPage'
-import { ReviewForm, SaveButton } from '../components/ReviewForm'
+import { ReadNotes, ReviewForm, SaveButton } from '../components/ReviewForm'
 import { aiAvailable, asUrl, importRecipeFromUrl } from '../lib/ai'
 
 type Phase = 'enter' | 'loading' | 'review'
@@ -29,6 +29,7 @@ export default function LinkPage() {
   const [error, setError] = useState<string | null>(null)
   const [draft, setDraft] = useState<Draft | null>(null)
   const [uncertain, setUncertain] = useState<string[]>([])
+  const [translatedFrom, setTranslatedFrom] = useState<string | undefined>()
   const [source, setSource] = useState<'structured' | 'ai'>('structured')
   const valid = asUrl(url)
   const canClipboard = typeof navigator !== 'undefined' && !!navigator.clipboard?.readText
@@ -41,6 +42,7 @@ export default function LinkPage() {
       const r = await importRecipeFromUrl(target)
       setDraft({ ...r.draft, attachments: [] })
       setUncertain(r.uncertain)
+      setTranslatedFrom(r.translatedFrom)
       setSource(r.source)
       setPhase('review')
     } catch (e) {
@@ -61,21 +63,13 @@ export default function LinkPage() {
         <div className="flex flex-col gap-6">
           <div>
             <h1 className="mt-2 text-[2rem] leading-tight font-semibold">Se over forslaget</h1>
-            <p className="mt-2 flex items-center gap-2 text-ink-2">
-              <IonIcon icon={globeOutline} aria-hidden /> Hentet fra <strong className="text-ink">{host(draft.sourceUrl ?? url)}</strong>
+            <p className="mt-2 text-ink-2">
+              <IonIcon icon={globeOutline} aria-hidden className="mr-1.5 align-[-0.15em]" />
+              Hentet fra <strong className="text-ink">{host(draft.sourceUrl ?? url)}</strong>
               {source === 'ai' && ' – lest av Claude'}
             </p>
           </div>
-          {uncertain.length > 0 && (
-            <div className="missing rounded-2xl p-4">
-              <p className="flex items-center gap-2 font-bold text-saffron">
-                <IonIcon icon={alertCircleOutline} aria-hidden /> Sjekk dette:
-              </p>
-              <ul className="mt-1 list-disc pl-6 text-ink-2">
-                {uncertain.map((u, i) => <li key={i}>{u}</li>)}
-              </ul>
-            </div>
-          )}
+          <ReadNotes uncertain={uncertain} translatedFrom={translatedFrom} />
           <ReviewForm draft={draft} onChange={setDraft} />
         </div>
       </FormPage>

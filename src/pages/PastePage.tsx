@@ -1,11 +1,12 @@
 import { IonIcon, useIonRouter } from '@ionic/react'
-import { clipboardOutline, sparkles } from 'ionicons/icons'
+import { clipboardOutline, languageOutline, sparkles } from 'ionicons/icons'
 import { useState } from 'react'
 import { type Draft } from '../components/editor'
 import { FormPage } from '../components/FormPage'
-import { ReviewForm, SaveButton } from '../components/ReviewForm'
+import { ReadNotes, ReviewForm, SaveButton } from '../components/ReviewForm'
 import { parseRecipeText } from '../domain/parseRecipeText'
-import { aiAvailable, asUrl } from '../lib/ai'
+import { looksNorwegian } from '../domain/language'
+import { aiAvailable, asUrl, readRecipeFromText } from '../lib/ai'
 
 const EXAMPLE = `Kremet kyllingpasta
 4 porsjoner · Tid: 30 min
@@ -33,11 +34,33 @@ export default function PastePage() {
   const [draft, setDraft] = useState<Draft | null>(null)
   const router = useIonRouter()
   const pastedUrl = asUrl(text)
+  const foreign = !pastedUrl && text.trim().length > 40 && !looksNorwegian(text)
+  const [reading, setReading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [uncertain, setUncertain] = useState<string[]>([])
+  const [translatedFrom, setTranslatedFrom] = useState<string | undefined>()
+
+  const readWithClaude = async () => {
+    setReading(true)
+    setError(null)
+    try {
+      const r = await readRecipeFromText(text)
+      setDraft({ ...r.draft, attachments: [] })
+      setUncertain(r.uncertain)
+      setTranslatedFrom(r.translatedFrom)
+    } catch (e) {
+      setError((e as Error).message)
+    } finally {
+      setReading(false)
+    }
+  }
   const canClipboard = typeof navigator !== 'undefined' && !!navigator.clipboard?.readText
 
   const analyse = (t = text) => {
     const d = parseRecipeText(t)
     setDraft({ ...d, attachments: [] })
+    setUncertain([])
+    setTranslatedFrom(undefined)
   }
 
   return (
@@ -56,6 +79,18 @@ export default function PastePage() {
             aria-label="Oppskriftstekst"
             autoFocus
           />
+          {foreign && aiAvailable && (
+            <div className="flex flex-col gap-2 rounded-2xl bg-sea-soft p-4">
+              <p className="flex items-center gap-2 font-bold text-ink">
+                <IonIcon icon={languageOutline} className="text-xl text-sea" aria-hidden /> Teksten ser ut til å være på et annet språk.
+              </p>
+              <p className="text-[0.95rem] text-ink-2">Claude kan lese den, oversette til norsk og regne om mål som cups og °F.</p>
+              {error && <p role="alert" className="font-bold text-tomato">{error}</p>}
+              <button className="btn btn-primary self-start" onClick={readWithClaude} disabled={reading}>
+                {reading ? 'Leser og oversetter …' : 'Les og oversett med Claude'}
+              </button>
+            </div>
+          )}
           {pastedUrl && aiAvailable && (
             <div className="flex flex-col gap-2 rounded-2xl bg-sea-soft p-4">
               <p className="font-bold text-ink">Dette er en lenke.</p>
@@ -92,6 +127,7 @@ export default function PastePage() {
             <h1 className="mt-2 text-[2rem] font-semibold">Se over forslaget</h1>
             <p className="mt-2 text-ink-2">Vi har sortert teksten og koblet ingrediensene til stegene. Rett det som ikke stemmer.</p>
           </div>
+          <ReadNotes uncertain={uncertain} translatedFrom={translatedFrom} />
           <ReviewForm draft={draft} onChange={setDraft} />
         </div>
       )}

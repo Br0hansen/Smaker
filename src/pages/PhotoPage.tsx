@@ -3,7 +3,7 @@ import { add, alertCircleOutline, cameraOutline, closeCircle, createOutline, ima
 import { useRef, useState } from 'react'
 import { resizeImage, type Draft } from '../components/editor'
 import { FormPage } from '../components/FormPage'
-import { ReviewForm, SaveButton } from '../components/ReviewForm'
+import { ReadNotes, ReviewForm, SaveButton } from '../components/ReviewForm'
 import { newId } from '../domain/ids'
 import { parseRecipeText } from '../domain/parseRecipeText'
 import { aiAvailable as ocrAvailable, readRecipeFromImages } from '../lib/ai'
@@ -22,6 +22,7 @@ export default function PhotoPage() {
   const [error, setError] = useState<string | null>(null)
   const [draft, setDraft] = useState<Draft | null>(null)
   const [uncertain, setUncertain] = useState<string[]>([])
+  const [translatedFrom, setTranslatedFrom] = useState<string | undefined>()
   const [text, setText] = useState('')
   const camRef = useRef<HTMLInputElement>(null)
   const libRef = useRef<HTMLInputElement>(null)
@@ -50,6 +51,7 @@ export default function PhotoPage() {
       const result = await readRecipeFromImages(images)
       setDraft({ ...result.draft, attachments: attachments() })
       setUncertain(result.uncertain)
+      setTranslatedFrom(result.translatedFrom)
       setPhase('review')
     } catch (e) {
       setError((e as Error).message)
@@ -60,6 +62,7 @@ export default function PhotoPage() {
   const fromText = () => {
     setDraft({ ...parseRecipeText(text), attachments: attachments() })
     setUncertain([])
+    setTranslatedFrom(undefined)
     setPhase('review')
   }
 
@@ -89,16 +92,7 @@ export default function PhotoPage() {
               <p className="text-ink-2">Bildene lagres sammen med oppskriften.</p>
             </div>
           </div>
-          {uncertain.length > 0 && (
-            <div className="missing rounded-2xl p-4">
-              <p className="flex items-center gap-2 font-bold text-saffron">
-                <IonIcon icon={alertCircleOutline} aria-hidden /> Dette var vanskelig å lese – sjekk mot bildet:
-              </p>
-              <ul className="mt-1 list-disc pl-6 text-ink-2">
-                {uncertain.map((u, i) => <li key={i}>{u}</li>)}
-              </ul>
-            </div>
-          )}
+          <ReadNotes uncertain={uncertain} translatedFrom={translatedFrom} />
           <ReviewForm draft={draft} onChange={setDraft} />
         </div>
       </FormPage>

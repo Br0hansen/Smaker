@@ -55,3 +55,19 @@ describe('foreslått fremgangsmåte', () => {
     expect(steps[0]).toMatchObject({ durationMin: null, temperatureC: null })
   })
 })
+
+import { looksNorwegian } from './language'
+describe('språkgjenkjenning', () => {
+  it('norsk', () => {
+    expect(looksNorwegian('Pisk egg og sukker luftig. Rør inn mel og melk, og stek vaflene i 3 minutter.')).toBe(true)
+    expect(looksNorwegian('400 g kjøttdeig\n1 løk\n2 ss smør\nStek kjøttkakene i smør til de er brune.')).toBe(true)
+  })
+  it('engelsk', () => {
+    expect(looksNorwegian('Preheat the oven to 350 degrees. Whisk the eggs and sugar, then add 2 cups of flour and 1 tablespoon butter. Bake until golden.')).toBe(false)
+    expect(looksNorwegian('2 cups flour\n1 tsp salt\n1 cup milk\nMix and bake for 20 minutes.')).toBe(false)
+  })
+  it('korte tekster uten tydelige tegn regnes som norske (ingen unødig oversettelse)', () => {
+    expect(looksNorwegian('Vafler')).toBe(true)
+    expect(looksNorwegian('3 egg, salt, pepper')).toBe(true)
+  })
+})

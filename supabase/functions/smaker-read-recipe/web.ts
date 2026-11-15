@@ -218,3 +218,47 @@ export function pageText(html: string): string {
   return [`Tittel: ${stripTags(title)}`, desc ? `Beskrivelse: ${desc}` : '', text].filter(Boolean).join('\n\n').slice(0, MAX_TEXT_CHARS)
 }
 
+
+// ---------------- Språk ----------------
+
+/** Samme heuristikk som src/domain/language.ts (holdes like). */
+const NO = /\b(og|med|til|ikke|eller|på|av|som|den|det|en|ei|et|skal|ha|stek|steik|rør|bland|pisk|kok|hakk|ovnen|deigen|minutter|grader|ss|ts|dl|krm|stk|smør|mel|melk|sukker|egg|løk|salt|pepper|fløte|gjær|kanel)\b/gi
+const EN = /\b(and|with|the|of|to|until|into|cup|cups|tablespoons?|teaspoons?|tbsp|tsp|oz|ounces?|pounds?|lbs?|minutes|degrees|preheat|bake|stir|whisk|mix|add|flour|sugar|butter|milk|eggs|onion|garlic|cream|oven|heat|serve)\b/gi
+export function looksNorwegian(text: string): boolean {
+  const sample = text.slice(0, 4000)
+  const no = (sample.match(NO) ?? []).length
+  const en = (sample.match(EN) ?? []).length
+  return no >= en * 0.8 || en < 4
+}
+
+/** Sidens språkmerke, f.eks. «en» fra <html lang="en-US">. */
+export function pageLanguage(html: string): string | null {
+  const m = html.match(/<html[^>]*\blang=["']?([a-zA-Z]{2,3})/i)
+  return m ? m[1].toLowerCase() : null
+}
+
+/** Er en strukturert oppskrift norsk? Språkmerket avgjør hvis det finnes, ellers ordtesten. */
+export function isNorwegianRecipe(r: WebRecipe, html: string): boolean {
+  const lang = pageLanguage(html)
+  if (lang && ['nb', 'no', 'nn', 'nob', 'nno', 'nor'].includes(lang)) return true
+  const text = [r.name, ...r.ingredients, ...r.instructions].join('\n')
+  if (lang && lang !== 'en') return false
+  return looksNorwegian(text)
+}
+
+/** Strukturert oppskrift som ren tekst, så Claude kan oversette den. */
+export function recipeAsText(r: WebRecipe): string {
+  return [
+    `Title: ${r.name}`,
+    r.description ? `Description: ${r.description}` : '',
+    r.yield ? `Yield: ${r.yield}` : '',
+    r.totalMinutes != null ? `Total time: ${r.totalMinutes} minutes` : '',
+    r.prepMinutes != null ? `Prep time: ${r.prepMinutes} minutes` : '',
+    '',
+    'Ingredients:',
+    ...r.ingredients.map((i) => `- ${i}`),
+    '',
+    'Instructions:',
+    ...r.instructions.map((s, i) => `${i + 1}. ${s}`),
+  ].join('\n')
+}

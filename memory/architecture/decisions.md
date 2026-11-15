@@ -73,3 +73,8 @@ Nyeste nederst. Hver beslutning: Kontekst, Alternativer, Beslutning, Begrunnelse
 - **Kontekst:** Brukeren vil lime inn lenker til oppskriftssider, og TikTok-oppskrifter mangler ofte fremgangsmåte i teksten.
 - **Beslutning:** Lenker hentes i Edge Function-en (CORS, vern mot interne adresser, 3 MB, 12 s). schema.org/Recipe (JSON-LD) leses deterministisk – ingen modellkostnad; ellers leser Claude sideteksten. Manglende steg kan foreslås av Claude på brukerens forespørsel; `smaker_steps.suggested` merker dem til de godkjennes/redigeres. Tider/temperaturer i forslag settes alltid til null.
 - **Begrunnelse:** Det meste av norske oppskriftssider har JSON-LD, så de fleste lenker er gratis og eksakte. Merking holder skillet mellom original og gjetning tydelig for familien.
+
+## 2026-11-15 — Oversettelse til norsk og omregning av mål
+- **Kontekst:** Brukeren vil at engelske (og andre utenlandske) oppskrifter oversettes til norsk.
+- **Beslutning:** Språk sjekkes med sidens `lang` + ordtest (`looksNorwegian`, lik i `src/domain/language.ts` og `web.ts`). Norske schema.org-data brukes direkte (gratis); utenlandske sendes som tekst til Claude, som oversetter til bokmål, regner om amerikanske mål (cup → 2,4 dl, °F → °C osv., aldri volum → vekt) og lister omregningene i «uncertain». Bilder og innlimt tekst (ny modus `text`) følger samme regler. `translatedFrom` vises som «Oversatt fra …».
+- **Begrunnelse:** Omregning er matematikk, ikke gjetting, men listes for kontroll. Norske kilder koster fortsatt ingenting.

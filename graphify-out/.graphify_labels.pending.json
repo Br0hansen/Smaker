@@ -16,6 +16,10 @@
   "14": "memorize.md",
   "15": "Smaker",
   "16": "RecipePage.tsx",
+  "17": "OnboardingPage.tsx",
   "18": "quantity.ts",
-  "21": "imports"
+  "19": "seed.ts",
+  "20": "supabase.ts",
+  "21": "imports",
+  "22": "persistCache"
 }

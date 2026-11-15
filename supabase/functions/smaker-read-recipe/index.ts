@@ -1,10 +1,10 @@
 /**
- * smaker-read-recipe – henter oppskrifter inn i Smaker. Tre moduser (body.mode):
+ * smaker-read-recipe – henter oppskrifter inn i Smaker. Moduser (body.mode):
  *  - "images" (standard): leser 1–4 bilder (skjermbilder, kokebokssider,
  *    håndskrevne kort) med Claude.
- *  - "url": henter en nettside. Har den schema.org/Recipe-data (de fleste
- *    oppskriftssider), brukes den direkte – uten språkmodell. Ellers leser
- *    Claude teksten (f.eks. en TikTok-beskrivelse).
+ *  - "url": henter en nettside. Har den norske schema.org/Recipe-data, brukes
+ *    den direkte – uten språkmodell. Ellers leser (og oversetter) Claude teksten.
+ *  - "text": innlimt tekst (typisk på et annet språk) → Claude leser og oversetter.
  *  - "suggest-steps": foreslår fremgangsmåte når originalen bare har ingredienser.
  *
  * Sikkerhet og kostnad:
@@ -19,7 +19,7 @@ import Anthropic from '@anthropic-ai/sdk'
 import { betaZodOutputFormat } from '@anthropic-ai/sdk/helpers/beta/zod'
 import { createClient } from '@supabase/supabase-js'
 import { z } from 'zod'
-import { fetchPage, pageText, ReadError, structuredRecipe } from './web.ts'
+import { fetchPage, isNorwegianRecipe, pageText, ReadError, recipeAsText, structuredRecipe } from './web.ts'
 
 const MODEL = 'claude-sonnet-5-5'
 const DAILY_LIMIT = 40
@@ -61,7 +61,8 @@ const RecipeRead = z.object({
   categories: z.array(z.string()).describe('0–3 korte kategorier på norsk, f.eks. «Bakst», «Middag»'),
   ingredients: z.array(Ingredient),
   steps: z.array(Step),
-  uncertain: z.array(z.string()).describe('Ord eller deler som var vanskelige å lese, med kort forklaring'),
+  uncertain: z.array(z.string()).describe('Ord eller deler som var vanskelige å lese, og alle mål du regnet om, med kort forklaring'),
+  translatedFrom: z.string().nullable().describe('Språket originalen var på, skrevet på norsk (f.eks. «engelsk»), hvis du oversatte. Ellers null'),
 })
 
 type RecipeReadT = z.infer<typeof RecipeRead>
@@ -71,24 +72,27 @@ const SuggestedSteps = z.object({
 })
 type SuggestedStepsT = z.infer<typeof SuggestedSteps>
 
+const LANG_RULES = `Oversett til norsk bokmål hvis originalen er på et annet språk (også svensk og dansk), og sett translatedFrom til språket (f.eks. «engelsk»). Er originalen norsk (bokmål, nynorsk eller gammel rettskrivning), behold teksten og sett translatedFrom til null.
+Regn om amerikanske og britiske mål til metriske – det er ren omregning, ikke gjetting: 1 cup = 2,4 dl, ½ cup = 1,2 dl, 1 tablespoon (tbsp) = 1 ss, 1 teaspoon (tsp) = 1 ts, 1 oz = 28 g, 1 lb = 450 g, 1 stick butter = 115 g, 1 fl oz = 0,3 dl, °F til °C ((F − 32) × 5/9, avrundet til nærmeste 5). Ingen omregning fra volum til vekt. List hver omregning kort i «uncertain» (f.eks. «2 cups mel → 4,8 dl»).`
+
 const SYSTEM = `Du leser av oppskrifter fra bilder for en norsk familiekokebok. Bildene kan være skjermbilder, sider fra kokebøker eller håndskrevne oppskriftskort – ofte gamle, med utydelig skrift, forkortelser og gammel rettskrivning.
 
 Regler:
 1. Skriv av det som faktisk står. Finn aldri på mengder, tider, temperaturer, porsjoner eller steg. Det som ikke står, blir null.
-2. Behold originalspråket (vanligvis norsk). Rett åpenbare skrivefeil, men ikke skriv om innholdet.
-3. Mengder som tall: «½» → 0.5, «1 1/2» → 1.5, «2–3» → amount 2 og amountMax 3. Kjente enheter skrives som g, kg, dl, l, ml, ss, ts, krm, stk, fedd, boks, pk eller klype. Gamle eller uvanlige enheter (kopp, glass, pund, «en neve») beholdes slik de står og nevnes i «uncertain».
+2. Rett åpenbare skrivefeil, men ikke skriv om innholdet. ${LANG_RULES}
+3. Mengder som tall: «½» → 0.5, «1 1/2» → 1.5, «2–3» → amount 2 og amountMax 3. Kjente enheter skrives som g, kg, dl, l, ml, ss, ts, krm, stk, fedd, boks, pk eller klype. Gamle norske enheter (kopp, glass, pund, «en neve») beholdes slik de står og nevnes i «uncertain».
 4. Koblinger til rutenettet: «ingredientIndexes» er ingrediensene som tas i bruk første gang i steget. «buildsOnSteps» er tidligere steg som steget bygger videre på. En parallell delprosess (f.eks. «kok pastaen» mens sausen lages) bygger ikke på forrige steg.
 5. Er fremgangsmåten ett langt avsnitt, del den i naturlige steg uten å endre innholdet.
 6. «uncertain»: alt du ikke kunne lese sikkert, med kort forklaring. Tom liste hvis alt er tydelig.
 7. Er bildet ikke en oppskrift: isRecipe = false, tom tittel og tomme lister.
 8. Flere bilder hører til samme oppskrift (f.eks. forside og bakside av et kort).`
 
-const SYSTEM_TEXT = `Du henter ut en oppskrift fra teksten på en nettside eller et innlegg i sosiale medier (f.eks. en TikTok- eller Instagram-beskrivelse) for en norsk familiekokebok. Teksten kan inneholde menyer, reklame, kommentarer og emneknagger – ignorer alt som ikke er selve oppskriften.
+const SYSTEM_TEXT = `Du henter ut en oppskrift fra tekst – en nettside, et innlegg i sosiale medier (f.eks. en TikTok- eller Instagram-beskrivelse) eller tekst noen har limt inn – for en norsk familiekokebok. Teksten kan inneholde menyer, reklame, kommentarer og emneknagger – ignorer alt som ikke er selve oppskriften.
 
 Regler:
 1. Ta bare med det som står. Finn aldri på mengder, tider, temperaturer, porsjoner eller steg. Står fremgangsmåten ikke i teksten, gi en tom liste med steg.
-2. Behold språket i teksten. Er oppskriften på et annet språk enn norsk, oversett den til norsk.
-3. Mengder som tall: «½» → 0.5, «1 1/2» → 1.5, «2–3» → amount 2 og amountMax 3. Kjente enheter: g, kg, dl, l, ml, ss, ts, krm, stk, fedd, boks, pk, klype. Amerikanske mål (cups, oz, °F) beholdes slik de står og nevnes i «uncertain».
+2. ${LANG_RULES}
+3. Mengder som tall: «½» → 0.5, «1 1/2» → 1.5, «2–3» → amount 2 og amountMax 3. Kjente enheter: g, kg, dl, l, ml, ss, ts, krm, stk, fedd, boks, pk, klype.
 4. «ingredientIndexes» er ingrediensene som tas i bruk første gang i steget; «buildsOnSteps» er tidligere steg steget bygger på. Parallelle delprosesser bygger ikke på forrige steg.
 5. «uncertain»: det som var uklart. Er det ingen oppskrift i teksten: isRecipe = false.`
 
@@ -97,7 +101,7 @@ const SYSTEM_SUGGEST = `Du foreslår en fremgangsmåte for en oppskrift i en nor
 Regler:
 1. Lag en vanlig, fornuftig fremgangsmåte for retten med de oppgitte ingrediensene, i riktig rekkefølge. Bruk bare ingrediensene i listen, og bruk alle der det er naturlig.
 2. Finn aldri på tider, temperaturer eller mengder. Feltene durationMin, durationMaxMin og temperatureC skal være null. Beskriv i stedet hvordan man ser at noe er ferdig («til løken er blank», «til de er gylne»). Trengs ovn, skriv «forvarm ovnen» uten temperatur.
-3. Korte, tydelige steg på norsk, i imperativ. «action» er ett handlingsord (Stek, Bland, Kok …).
+3. Korte, tydelige steg på norsk bokmål, i imperativ – også om tittelen eller ingrediensene er på et annet språk. «action» er ett handlingsord (Stek, Bland, Kok …).
 4. «ingredientIndexes» er 0-baserte indekser i ingredienslisten for ingrediensene som tas i bruk første gang i steget; «buildsOnSteps» er tidligere steg steget bygger på. Parallelle delprosesser (f.eks. koke pasta mens sausen lages) bygger ikke på forrige steg.`
 
 // ---------------- Modellkall ----------------
@@ -138,8 +142,8 @@ function readImages(images: ImageIn[]) {
   ], RecipeRead)
 }
 
-function readText(text: string, url: string) {
-  return askClaude<RecipeReadT>(SYSTEM_TEXT, [{ type: 'text', text: `Kilde: ${url}\n\n<tekst>\n${text}\n</tekst>` }], RecipeRead)
+function readText(text: string, source: string) {
+  return askClaude<RecipeReadT>(SYSTEM_TEXT, [{ type: 'text', text: `Kilde: ${source}\n\n<tekst>\n${text}\n</tekst>` }], RecipeRead)
 }
 
 function suggestSteps(title: string, ingredients: { name: string; amount?: number | null; unit?: string | null; note?: string | null }[]) {
@@ -192,7 +196,7 @@ Deno.serve(async (req) => {
   }
 
   const body = await req.json().catch(() => null)
-  const mode: 'images' | 'url' | 'suggest-steps' = body?.mode ?? 'images'
+  const mode: 'images' | 'url' | 'text' | 'suggest-steps' = body?.mode ?? 'images'
 
   const log = (row: Record<string, unknown>) =>
     admin.from('smaker_ai_usage').insert({ user_id: user.id, family_id: familyId, model: MODEL, kind: mode, ...row })
@@ -203,10 +207,19 @@ Deno.serve(async (req) => {
     if (mode === 'url') {
       const { html, url } = await fetchPage(String(body?.url ?? ''))
       const structured = structuredRecipe(html)
-      if (structured) return json({ source: 'structured', recipe: structured, url })
-      const result = await readText(pageText(html), url)
+      // Norske oppskriftsdata brukes direkte (gratis). Utenlandske oversettes av Claude.
+      if (structured && isNorwegianRecipe(structured, html)) return json({ source: 'structured', recipe: structured, url })
+      const result = await readText(structured ? recipeAsText(structured) : pageText(html), url)
       await logResult(result)
       return json({ source: 'ai', recipe: result.parsed, url, model: result.model })
+    }
+
+    if (mode === 'text') {
+      const text = String(body?.text ?? '').trim().slice(0, 20000)
+      if (!text) return json({ error: 'Lim inn tekst først.' }, 400)
+      const result = await readText(text, 'innlimt tekst')
+      await logResult(result)
+      return json({ recipe: result.parsed, model: result.model })
     }
 
     if (mode === 'suggest-steps') {
@@ -231,7 +244,7 @@ Deno.serve(async (req) => {
     await logResult(result, images.length)
     return json({ recipe: result.parsed, model: result.model })
   } catch (e) {
-    if (e instanceof ConfigError) return json({ error: 'Bildelesing er ikke satt opp ennå.' }, 503)
+    if (e instanceof ConfigError) return json({ error: 'Automatisk lesing er ikke satt opp ennå.' }, 503)
     if (e instanceof ReadError) {
       if (e.status >= 500) await log({ ok: false, error: e.message.slice(0, 300) })
       return json({ error: e.message }, e.status)

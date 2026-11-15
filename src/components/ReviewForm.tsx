@@ -1,5 +1,5 @@
 import { IonIcon, useIonRouter, useIonToast } from '@ionic/react'
-import { bookOutline } from 'ionicons/icons'
+import { alertCircleOutline, bookOutline, languageOutline } from 'ionicons/icons'
 import { useState } from 'react'
 import { ConflictError, saveRecipe } from '../data/store'
 import { canSave, findIssues } from '../domain/validate'
@@ -70,5 +70,30 @@ export function Section({ n, title, children }: { n?: number; title: string; chi
       </h2>
       {children}
     </section>
+  )
+}
+
+/** Merknader fra automatisk lesing: oversettelse, omregnede mål og usikre ord. */
+export function ReadNotes({ uncertain, translatedFrom }: { uncertain: string[]; translatedFrom?: string }) {
+  if (!uncertain.length && !translatedFrom) return null
+  return (
+    <div className="flex flex-col gap-3">
+      {translatedFrom && (
+        <p className="flex items-center gap-2 rounded-2xl bg-sea-soft p-4 font-bold text-ink">
+          <IonIcon icon={languageOutline} className="shrink-0 text-xl text-sea" aria-hidden />
+          Oversatt fra {translatedFrom}. Sjekk at mengder og mål stemmer.
+        </p>
+      )}
+      {uncertain.length > 0 && (
+        <div className="missing rounded-2xl p-4">
+          <p className="flex items-center gap-2 font-bold text-saffron">
+            <IonIcon icon={alertCircleOutline} aria-hidden /> Sjekk dette:
+          </p>
+          <ul className="mt-1 list-disc pl-6 text-ink-2">
+            {uncertain.map((u, i) => <li key={i}>{u}</li>)}
+          </ul>
+        </div>
+      )}
+    </div>
   )
 }
