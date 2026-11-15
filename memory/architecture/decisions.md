@@ -57,3 +57,8 @@ Nyeste nederst. Hver beslutning: Kontekst, Alternativer, Beslutning, Begrunnelse
 - **Kontekst:** `deploy-pages` krever at Pages er slått på i innstillingene. Workflow-tokenet kan ikke slå det på («Resource not accessible by integration»), og vi har ikke verktøy for repoinnstillinger.
 - **Beslutning:** Workflowen bygger og force-pusher `dist/` til `gh-pages` (med `.nojekyll` og `404.html`). Første `gh-pages` ble pushet fra Claude-økten for å utløse automatisk aktivering.
 - **Begrunnelse:** Virker med standard `GITHUB_TOKEN` (`contents: write`); en push til `gh-pages` aktiverer Pages på offentlige repoer.
+
+## 2026-11-15 — Ionic-faner (IonTabs) i stedet for egen fanelinje
+- **Kontekst:** Brukeren meldte at «Oppskrifter»/«Familien» sluttet å virke etter frem-og-tilbake-trykk (på telefon). Egen fanelinje byttet side med `router.push(path, 'none', 'replace')` i én felles stabel. Ionic tolker retning `'none'` som fanebytte og forventer `IonTabs`; koden har egne sikkerhetsnett for sider som blir hengende usynlige. Feilen lot seg ikke gjenskape i Chromium (WebKit finnes ikke i cloud-maskinen).
+- **Beslutning:** `IonTabs` + `IonTabBar` for Hjem/Familien; detaljsider i ytre outlet. Etter lagring navigeres det med `'root'`, så «tilbake» går til kokeboka.
+- **Begrunnelse:** Ionic sitt eget, testede mønster for faner. 18 navigasjonssjekker (raske trykk med nedskrudd CPU, oppskrift/legg til/lagring → faner, direkte lenker, PC-meny) passerer.

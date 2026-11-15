@@ -1,7 +1,7 @@
 import { IonContent, IonIcon, IonPage, useIonRouter, useIonToast } from '@ionic/react'
 import { add, cloudOfflineOutline, searchOutline, sparklesOutline } from 'ionicons/icons'
 import { useMemo, useState } from 'react'
-import { MainHeader, TabBar } from '../components/AppChrome'
+import { MainHeader } from '../components/AppChrome'
 import { RecipeCard } from '../components/RecipeCard'
 import { SectionTitle } from '../components/ui'
 import { importSampleRecipes, useFavorites, useFamily, useRecipes, useStore, useSyncError } from '../data/store'
@@ -131,7 +131,6 @@ export default function HomePage() {
           )}
         </div>
       </IonContent>
-      <TabBar />
     </IonPage>
   )
 }

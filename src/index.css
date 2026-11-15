@@ -187,6 +187,58 @@
     box-shadow: inset 0 0 0 1.5px rgb(176 116 24 / 0.55);
   }
 
+  /* Fanelinje (Ionic IonTabBar) */
+  ion-tab-bar.smaker-tabbar {
+    height: calc(4.25rem + env(safe-area-inset-bottom));
+    --background: color-mix(in oklab, var(--color-card) 95%, transparent);
+    --border: 1px solid var(--color-line);
+    overflow: visible;
+  }
+  /* Plass i midten til «Legg til» */
+  ion-tab-bar.smaker-tabbar { justify-content: space-between; }
+  ion-tab-bar.smaker-tabbar ion-tab-button {
+    flex: 0 0 36%;
+    --color: var(--color-ink-3);
+    --color-selected: var(--color-tomato);
+    font-weight: 700;
+  }
+  ion-tab-bar.smaker-tabbar ion-tab-button ion-label { font-size: 0.8rem; font-weight: 700; }
+  ion-tab-bar.smaker-tabbar ion-tab-button ion-icon { font-size: 1.6rem; }
+  ion-tab-bar.smaker-tabbar ion-tab-button.tab-selected .icon-off,
+  ion-tab-bar.smaker-tabbar ion-tab-button:not(.tab-selected) .icon-on { display: none; }
+  .smaker-add {
+    position: absolute;
+    left: 50%;
+    bottom: env(safe-area-inset-bottom);
+    transform: translateX(-50%);
+    z-index: 20;
+    height: 4.25rem;
+    min-width: 5.5rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.25rem;
+    padding-bottom: 0.4rem;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--color-tomato);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .smaker-add-circle {
+    display: grid;
+    place-items: center;
+    width: 3.5rem;
+    height: 3.5rem;
+    margin-top: -1.6rem;
+    border-radius: 999px;
+    background: var(--color-tomato);
+    color: white;
+    font-size: 2rem;
+    box-shadow: var(--shadow-lift);
+    outline: 4px solid var(--color-paper);
+  }
+
   .no-scrollbar { scrollbar-width: none; }
   .no-scrollbar::-webkit-scrollbar { display: none; }
 }

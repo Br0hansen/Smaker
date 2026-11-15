@@ -43,7 +43,8 @@ export function SaveButton({ draft, label = 'Lagre i kokeboka' }: { draft: Draft
         try {
           const saved = await saveRecipe(draft)
           toast({ message: `«${saved.title}» er lagret i kokeboka`, duration: 2500, position: 'top' })
-          router.push(`/oppskrift/${saved.id}`, 'forward', 'replace')
+          // 'root': etter lagring skal «tilbake» gå til kokeboka, ikke tilbake gjennom skjemaet
+          router.push(`/oppskrift/${saved.id}`, 'root', 'replace')
         } catch (e) {
           const message =
             e instanceof ConflictError

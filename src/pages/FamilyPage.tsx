@@ -1,7 +1,7 @@
 import { IonContent, IonIcon, IonPage, useIonToast } from '@ionic/react'
 import { checkmark, copyOutline, createOutline, lockClosedOutline, logOutOutline, personAddOutline, shareOutline } from 'ionicons/icons'
 import { useState } from 'react'
-import { MainHeader, TabBar } from '../components/AppChrome'
+import { MainHeader } from '../components/AppChrome'
 import { Avatar, SectionTitle } from '../components/ui'
 import { createInviteLink, signOut, updateMyName, useEmail, useFamily, useMode, useRecipes, useUserId } from '../data/store'
 import type { MemberRole } from '../domain/types'
@@ -148,7 +148,6 @@ export default function FamilyPage() {
           )}
         </div>
       </IonContent>
-      <TabBar />
     </IonPage>
   )
 }

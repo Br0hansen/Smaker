@@ -7,18 +7,16 @@ import AuthPage from './pages/AuthPage'
 import OnboardingPage from './pages/OnboardingPage'
 import AddRecipePage from './pages/AddRecipePage'
 import CookingModePage from './pages/CookingModePage'
-import FamilyPage from './pages/FamilyPage'
-import HomePage from './pages/HomePage'
 import ManualWizardPage from './pages/ManualWizardPage'
-import NotFoundPage from './pages/NotFoundPage'
+import MainTabs from './components/MainTabs'
 import PastePage from './pages/PastePage'
 import PhotoPage from './pages/PhotoPage'
 import RecipePage from './pages/RecipePage'
 
 /**
  * Ruter (norske URL-er, så lenker som deles i familien er lesbare):
- *   /                         Hjem
- *   /familie                  Familiegruppen
+ *   /                         Hjem         (fane)
+ *   /familie                  Familien     (fane)
  *   /ny                       Velg hvordan du vil legge inn
  *   /ny/lim-inn | /ny/bilde | /ny/manuelt
  *   /oppskrift/:id            Oppskrift (klassisk + Recipe Grid)
@@ -34,8 +32,6 @@ export default function App() {
     <IonApp>
       <IonReactRouter basename={import.meta.env.BASE_URL.replace(/\/$/, '')}>
         <IonRouterOutlet>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/familie" element={<FamilyPage />} />
           <Route path="/ny" element={<AddRecipePage />} />
           <Route path="/ny/lim-inn" element={<PastePage />} />
           <Route path="/ny/bilde" element={<PhotoPage />} />
@@ -43,7 +39,8 @@ export default function App() {
           <Route path="/oppskrift/:id" element={<RecipePage />} />
           <Route path="/oppskrift/:id/rediger" element={<ManualWizardPage />} />
           <Route path="/oppskrift/:id/lag" element={<CookingModePage />} />
-          <Route path="*" element={<NotFoundPage />} />
+          {/* Hjem og Familien er faner – må stå sist, den fanger alt annet */}
+          <Route path="/*" element={<MainTabs />} />
         </IonRouterOutlet>
       </IonReactRouter>
     </IonApp>
