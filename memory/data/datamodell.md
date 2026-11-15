@@ -20,3 +20,10 @@ Oppskrift = graf. TypeScript i `src/domain/types.ts`, Postgres i `supabase/migra
 - Tilgang: RLS via `smaker_private.smaker_is_family_member`, `…_has_family_role`, `…_can_access_recipe` (security definer). Nye medlemmer kun via RPC `smaker_accept_family_invite` (engangstoken, bare hash lagres, 7 dagers utløp).
 - Storage: privat bøtte `smaker-media`, mappe per familie (`<family_id>/…`).
 - Test: `npm run test:db` (PGlite + Supabase-etterligning, 25 sjekker).
+
+## App-API (migrasjon `smaker_app_api`)
+- `smaker_save_recipe(jsonb)` erstatter ingredienser/steg/koblinger/vedlegg i sin helhet og lagrer øyeblikksbilde. JSON-formen er lik TypeScript-typen `Recipe` (camelCase) – se `smaker_recipe_json`.
+- Konfliktsjekk: klienten sender versjonen den redigerte; utdatert → `SMAKER_CONFLICT` → `ConflictError` i klienten.
+- Bilder: databasen lagrer sti (`<familie>/<uuid>.jpg`), klienten viser signert URL (7 dager). `remote.ts` husker sti ↔ URL.
+- Favoritter: hele familien kan se, bare egne kan endres.
+- Røyktest mot ekte database: `DO`-blokk som avslutter med `raise exception` → alt rulles tilbake, resultatet står i feilmeldingen.

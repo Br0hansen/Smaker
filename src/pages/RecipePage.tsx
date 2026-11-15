@@ -16,8 +16,8 @@ import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { ClassicView } from '../components/ClassicView'
 import { GridView } from '../components/GridView'
-import { Avatar, RecipeCover, Segmented, ServingsStepper } from '../components/ui'
-import { memberName, restoreVersion, toggleFavorite, useFamily, useFavorites, useRecipe, useVersions } from '../data/store'
+import { Avatar, originMember, RecipeCover, Segmented, ServingsStepper } from '../components/ui'
+import { loadVersions, memberName, restoreVersion, toggleFavorite, useFamily, useFavorites, useRecipe, useVersions } from '../data/store'
 import { formatMinutes } from '../domain/quantity'
 import { scaleFactor } from '../domain/validate'
 import NotFoundPage from './NotFoundPage'
@@ -41,8 +41,7 @@ export default function RecipePage() {
   const portions = servings ?? recipe.servings ?? 1
   const factor = scaleFactor(recipe.servings, portions)
   const fav = favorites.includes(recipe.id)
-  const author = family.members.find((m) => m.id === recipe.createdBy)
-  const originMember = family.members.find((m) => m.name === recipe.origin) ?? author
+  const origin = originMember(family.members, recipe.origin, recipe.createdBy)
   const scans = recipe.attachments.filter((a) => a.kind === 'original-scan')
 
   return (
@@ -53,10 +52,10 @@ export default function RecipePage() {
             <IonBackButton defaultHref="/" text="Tilbake" />
           </IonButtons>
           <IonButtons slot="end">
-            <IonButton onClick={() => toggleFavorite(recipe.id)} aria-label={fav ? 'Fjern fra favoritter' : 'Legg til i favoritter'} aria-pressed={fav}>
+            <IonButton onClick={() => toggleFavorite(recipe.id).catch(() => toast({ message: 'Klarte ikke å lagre favoritten', duration: 2500, position: 'top' }))} aria-label={fav ? 'Fjern fra favoritter' : 'Legg til i favoritter'} aria-pressed={fav}>
               <IonIcon slot="icon-only" icon={fav ? heart : heartOutline} className={fav ? 'text-tomato' : ''} />
             </IonButton>
-            <IonButton onClick={() => setHistoryOpen(true)} aria-label="Versjonshistorikk">
+            <IonButton onClick={() => { setHistoryOpen(true); void loadVersions(recipe.id) }} aria-label="Versjonshistorikk">
               <IonIcon slot="icon-only" icon={timerOutline} />
             </IonButton>
             <IonButton routerLink={`/oppskrift/${recipe.id}/rediger`} aria-label="Rediger oppskrift">
@@ -76,7 +75,7 @@ export default function RecipePage() {
             <div className="flex flex-col gap-4">
               {recipe.origin && (
                 <span className="inline-flex items-center gap-2 self-start rounded-full bg-card py-1 pr-3 pl-1 font-bold text-ink-2 shadow-card">
-                  <Avatar member={originMember} size="sm" /> Fra {recipe.origin}
+                  <Avatar member={origin} size="sm" /> Fra {recipe.origin}
                 </span>
               )}
               <h1 className="text-[2.3rem] leading-[1.05] font-semibold md:text-[3.2rem]">{recipe.title}</h1>
@@ -159,6 +158,7 @@ export default function RecipePage() {
           <div className="flex flex-col gap-4 p-6">
             <h2 className="text-[1.45rem] font-semibold">Versjoner</h2>
             <p className="text-ink-2">Har noen endret noe ved en feil? Gjenopprett en tidligere versjon – ingenting blir slettet.</p>
+            {versions.length === 0 && <p className="text-ink-3">Henter versjoner …</p>}
             <ol className="flex flex-col divide-y divide-line">
               {[...versions].reverse().map((v) => (
                 <li key={v.version} className="flex items-center gap-3 py-3">
@@ -172,10 +172,14 @@ export default function RecipePage() {
                   {v.version !== recipe.version && (
                     <button
                       className="btn btn-secondary min-h-10 px-4 text-[0.9rem]"
-                      onClick={() => {
-                        restoreVersion(recipe.id, v.version)
-                        setHistoryOpen(false)
-                        toast({ message: `Versjon ${v.version} er gjenopprettet`, duration: 2500, position: 'top' })
+                      onClick={async () => {
+                        try {
+                          await restoreVersion(recipe.id, v.version)
+                          setHistoryOpen(false)
+                          toast({ message: `Versjon ${v.version} er gjenopprettet`, duration: 2500, position: 'top' })
+                        } catch (e) {
+                          toast({ message: `Klarte ikke å gjenopprette: ${(e as Error).message}`, duration: 4000, position: 'top', color: 'danger' })
+                        }
                       }}
                     >
                       <IonIcon icon={refreshOutline} aria-hidden /> Gjenopprett

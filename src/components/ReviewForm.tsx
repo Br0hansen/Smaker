@@ -1,6 +1,7 @@
 import { IonIcon, useIonRouter, useIonToast } from '@ionic/react'
 import { bookOutline } from 'ionicons/icons'
-import { saveRecipe } from '../data/store'
+import { useState } from 'react'
+import { ConflictError, saveRecipe } from '../data/store'
 import { canSave, findIssues } from '../domain/validate'
 import { BasicsFields, IngredientsEditor, IssueList, RecipePreview, StepsEditor, type Draft } from './editor'
 
@@ -32,17 +33,29 @@ export function ReviewForm({ draft, onChange }: { draft: Draft; onChange: (d: Dr
 export function SaveButton({ draft, label = 'Lagre i kokeboka' }: { draft: Draft; label?: string }) {
   const router = useIonRouter()
   const [toast] = useIonToast()
+  const [busy, setBusy] = useState(false)
   return (
     <button
       className="btn btn-primary min-h-14 flex-1 text-[1.05rem]"
-      disabled={!canSave(draft)}
-      onClick={() => {
-        const saved = saveRecipe(draft)
-        toast({ message: `«${saved.title}» er lagret i kokeboka`, duration: 2500, position: 'top' })
-        router.push(`/oppskrift/${saved.id}`, 'forward', 'replace')
+      disabled={!canSave(draft) || busy}
+      onClick={async () => {
+        setBusy(true)
+        try {
+          const saved = await saveRecipe(draft)
+          toast({ message: `«${saved.title}» er lagret i kokeboka`, duration: 2500, position: 'top' })
+          router.push(`/oppskrift/${saved.id}`, 'forward', 'replace')
+        } catch (e) {
+          const message =
+            e instanceof ConflictError
+              ? 'Noen andre har endret oppskriften i mellomtiden. Åpne den på nytt og gjør endringen igjen.'
+              : `Klarte ikke å lagre: ${(e as Error).message}`
+          toast({ message, duration: 5000, position: 'top', color: 'danger' })
+        } finally {
+          setBusy(false)
+        }
       }}
     >
-      <IonIcon icon={bookOutline} aria-hidden className="text-xl" /> {label}
+      <IonIcon icon={bookOutline} aria-hidden className="text-xl" /> {busy ? 'Lagrer …' : label}
     </button>
   )
 }

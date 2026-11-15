@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom'
 import { useFamily } from '../data/store'
 import { formatMinutes } from '../domain/quantity'
 import type { Recipe } from '../domain/types'
-import { Avatar, RecipeCover } from './ui'
+import { Avatar, originMember, RecipeCover } from './ui'
 
 export function RecipeCard({ recipe, favorite = false, variant = 'grid' }: { recipe: Recipe; favorite?: boolean; variant?: 'grid' | 'rail' }) {
   const family = useFamily()
@@ -41,7 +41,7 @@ export function RecipeCard({ recipe, favorite = false, variant = 'grid' }: { rec
         </div>
         {origin && (
           <div className="flex items-center gap-2 border-t border-dashed border-line pt-2 text-[0.88rem] text-ink-2">
-            <Avatar member={family.members.find((m) => m.name === origin) ?? author} size="sm" />
+            <Avatar member={originMember(family.members, recipe.origin, recipe.createdBy)} size="sm" />
             <span>
               Fra <strong className="font-bold text-ink">{origin}</strong>
             </span>

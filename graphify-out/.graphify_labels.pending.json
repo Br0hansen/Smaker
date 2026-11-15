@@ -2,9 +2,9 @@
   "0": "editor.tsx",
   "1": "package.json",
   "2": "types.ts",
-  "3": "HomePage.tsx",
+  "3": "store.ts",
   "4": "RecipePage.tsx",
-  "5": "store.ts",
+  "5": "remote.ts",
   "6": "Smaker – prosjektminne",
   "7": "compilerOptions",
   "8": "quantity.ts",
@@ -14,5 +14,6 @@
   "12": "/resume — Last inn konteksten fra forrige økt",
   "13": ".claude/CLAUDE.md",
   "14": "memorize.md",
-  "15": "Smaker"
+  "15": "Smaker",
+  "16": "RecipePage.tsx"
 }

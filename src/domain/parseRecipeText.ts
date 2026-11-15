@@ -113,7 +113,7 @@ export function parseRecipeText(input: string): RecipeDraft {
   const ingredients: Ingredient[] = ingLines.map(({ text, group }) => {
     const p = parseIngredientLine(text)
     return {
-      id: newId('ing'),
+      id: newId(),
       name: p.name || text,
       amount: p.amount,
       amountMax: p.amountMax,
@@ -123,7 +123,7 @@ export function parseRecipeText(input: string): RecipeDraft {
     }
   })
 
-  const drafts: DraftStep[] = splitSteps(stepLines).map((text) => ({ id: newId('step'), text }))
+  const drafts: DraftStep[] = splitSteps(stepLines).map((text) => ({ id: newId(), text }))
   const steps = autoLink(ingredients, drafts)
 
   const all = [title, ...descLines, ...ingLines.map((l) => l.text)].join(' ')

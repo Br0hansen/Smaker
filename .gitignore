@@ -2,12 +2,11 @@ node_modules
 dist
 dev-dist
 *.local
-.env
-.env.*
-!.env.example
+# .env (offentlige verdier) committes; hemmeligheter hører hjemme i .env.local (dekkes av *.local)
 *.tsbuildinfo
 # Obsidian: personlige innstillinger for vaultet i memory/
 memory/.obsidian/workspace*.json
 memory/.obsidian/cache
 # Graphify cache
 graphify-out/cache/
+dist-local

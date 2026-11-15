@@ -144,7 +144,7 @@ function toRaw(i: Ingredient): string {
  */
 export function IngredientsEditor({ ingredients, onChange }: { ingredients: Ingredient[]; onChange: (ings: Ingredient[]) => void }) {
   const [raw, setRaw] = useState<Record<string, string>>(() => Object.fromEntries(ingredients.map((i) => [i.id, toRaw(i)])))
-  const [blankId, setBlankId] = useState(() => newId('ing'))
+  const [blankId, setBlankId] = useState(() => newId())
   const refs = useRef<Record<string, HTMLInputElement | null>>({})
   const focusNext = useRef<string | null>(null)
 
@@ -162,7 +162,7 @@ export function IngredientsEditor({ ingredients, onChange }: { ingredients: Ingr
     if (id === blankId) {
       if (!text.trim()) return
       onChange([...ingredients, { id, ...fields }])
-      setBlankId(newId('ing'))
+      setBlankId(newId())
     } else {
       onChange(ingredients.map((i) => (i.id === id ? { ...i, ...fields } : i)))
     }
@@ -243,7 +243,7 @@ export function StepsEditor({
   }
 
   const patch = (id: string, p: Partial<Step>) => onChange(steps.map((s) => (s.id === id ? { ...s, ...p } : s)))
-  const addStep = () => onChange([...steps, { id: newId('step'), text: '', action: '', inputs: [] }])
+  const addStep = () => onChange([...steps, { id: newId(), text: '', action: '', inputs: [] }])
   const removeStep = (id: string) =>
     onChange(steps.filter((s) => s.id !== id).map((s) => ({ ...s, inputs: s.inputs.filter((x) => !(x.kind === 'step' && x.id === id)) })))
   const move = (i: number, d: number) => {

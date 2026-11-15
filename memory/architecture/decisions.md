@@ -35,3 +35,14 @@ Nyeste nederst. Hver beslutning: Kontekst, Alternativer, Beslutning, Begrunnelse
 - **Alternativer:** Eget skjema `smaker` (krever at skjemaet eksponeres i API-innstillingene), generiske navn i `public` (kollisjonsfare), prefiks `smaker_` i `public`.
 - **Beslutning:** Prefiks `smaker_` på alle objekter i `public`, som de andre appene. Interne hjelpefunksjoner i eget skjema `smaker_private`. Bøtte `smaker-media`.
 - **Begrunnelse:** Følger prosjektets konvensjon, virker med standard API-oppsett, og kan ikke kollidere med de andre appene. Brede `revoke … on all functions in schema public` ble fjernet fra migrasjonen fordi det ville ødelagt de andre appenes RPC-er. Lagringsreglene sammenligner mappenavn som tekst, så filer i andre apper sine bøtter ikke kan få reglene til å feile.
+
+## 2026-11-15 — Magisk lenke + engangskode
+- **Kontekst:** Brukeren valgte magisk lenke. En PWA installert på hjemskjermen på iPhone har egen lagring, adskilt fra Safari, så en lenke i e-posten logger inn i Safari, ikke i appen.
+- **Alternativer:** Bare lenke; Google-innlogging; e-post + passord.
+- **Beslutning:** `signInWithOtp` (lenke) + `verifyOtp` med koden fra samme e-post. Implisitt flyt (ikke PKCE), så lenken virker også om den åpnes på en annen enhet.
+- **Begrunnelse:** Ingen passord for besteforeldre, og fungerer i installert app. Krever `{{ .Token }}` i e-postmalen og at Smakers adresser står i Redirect URLs (gjøres i dashbordet – malen deles med de andre appene).
+
+## 2026-11-15 — Lagring som én RPC med hele grafen
+- **Kontekst:** En oppskrift er mange rader (ingredienser, steg, koblinger). Delvis lagring ville gitt ødelagte rutenett.
+- **Beslutning:** `smaker_save_recipe` (SECURITY INVOKER, så RLS gjelder) erstatter alt i én transaksjon og lagrer versjon. Optimistisk samtidighet via versjonsnummer.
+- **Begrunnelse:** Atomisk, enkel klient, versjonshistorikk gratis.

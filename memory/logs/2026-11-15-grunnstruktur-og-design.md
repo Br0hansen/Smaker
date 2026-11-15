@@ -42,3 +42,15 @@ Se [[decisions]]: minne i repoet, Graphify prosjektvis, Ionic for skall + Tailwi
 - Opprettet Smaker-tabellene i DailyPep (migrasjonene `smaker_init` og `smaker_private_helpers`). Alt prefikset `smaker_`; hjelpefunksjoner i `smaker_private`.
 - Sikkerhetsrådgiveren: bare de to tilsiktede RPC-ene står igjen for Smaker.
 - Neste: `@supabase/supabase-js`, innlogging, og bytte `src/data/store.ts` til Supabase.
+
+## Tillegg: Supabase-tilkobling
+- Migrasjon `smaker_app_api` (create_family, get/save/delete recipe, familiefavoritter, sanntid) kjørt i DailyPep, røyktestet med tilbakerulling.
+- Klient: `src/lib/supabase.ts`, `src/data/remote.ts`, ny `store.ts` (remote + lokal demomodus), AuthPage (lenke + kode), OnboardingPage, tom tilstand med eksempelimport.
+- Tester: `npm test` 13/13, `npm run test:db` 40/40, etterlignet innloggingsflyt i Playwright OK.
+
+## Gjenstår (oppdatert)
+- [ ] Brukeren: Redirect URLs, `{{ .Token }}` i Magic Link-malen, egen SMTP (se README)
+- [ ] Offline-kø for endringer
+- [ ] Bytte mellom flere familier i UI
+- [ ] Tekstgjenkjenning for bilder
+- [ ] Kodesplitting

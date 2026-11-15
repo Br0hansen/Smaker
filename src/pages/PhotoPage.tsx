@@ -35,7 +35,7 @@ export default function PhotoPage() {
     // Originalbildet tas vare på som vedlegg – viktig for gamle familieoppskrifter
     setDraft({
       ...d,
-      attachments: image ? [{ id: newId('att'), kind: 'original-scan', url: image, caption: 'Originaloppskriften', createdAt: new Date().toISOString() }] : [],
+      attachments: image ? [{ id: newId(), kind: 'original-scan', url: image, caption: 'Originaloppskriften', createdAt: new Date().toISOString() }] : [],
     })
   }
 

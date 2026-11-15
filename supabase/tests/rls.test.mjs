@@ -67,9 +67,51 @@ await expectFail('invitasjonen kan ikke brukes to ganger', () => as(B, `select s
 check('B kan ikke gjøre seg selv til admin', (await as(B, `update smaker_family_members set role = 'admin' where user_id = $1 returning role`, [B]).catch(() => [])).length === 0)
 await as(B, `insert into smaker_favorites (recipe_id) values ($1)`, [rec.id])
 check('B kan favorisere nå', (await as(B, `select * from smaker_favorites`)).length === 1)
-check('A ser ikke B sine favoritter', (await as(A, `select * from smaker_favorites`)).length === 0)
+check('A ser B sin favoritt (samme familie)', (await as(A, `select * from smaker_favorites`)).length === 1)
 check('Bilde i familiens mappe er lesbart', (await as(B, `insert into storage.objects (bucket_id, name) values ('smaker-media', $1) returning id`, [`${fam.id}/vafler.jpg`])).length === 1)
 await expectFail('Bilde i fremmed mappe avvises', () => as(B, `insert into storage.objects (bucket_id, name) values ('smaker-media', $1)`, ['00000000-0000-0000-0000-000000000099/x.jpg']))
 await expectFail('Ugyldig mappenavn avvises uten å krasje', () => as(B, `insert into storage.objects (bucket_id, name) values ('smaker-media', 'ikke-en-uuid/x.jpg')`))
 await db.exec(`insert into storage.buckets values ('annen-app', 'annen-app', false); insert into storage.objects (bucket_id, name) values ('annen-app', 'ikke-uuid/fil.txt')`)
 check('Andre apper sine filer krasjer ikke reglene våre', Array.isArray(await as(B, `select * from storage.objects`)))
+
+// ---------- App-API: smaker_create_family / smaker_save_recipe / smaker_get_recipes ----------
+const C = '00000000-0000-0000-0000-00000000000c'
+await db.exec(`insert into auth.users values ('${C}', '{}')`)
+const [{ smaker_create_family: famC }] = await as(C, `select smaker_create_family('Familien C', 'Cecilie')`)
+check('create_family gir eier med valgt navn', (await as(C, `select display_name, role from smaker_family_members where family_id = $1`, [famC]))[0]?.display_name === 'Cecilie')
+
+const uuid = () => crypto.randomUUID()
+const ing1 = uuid(), ing2 = uuid(), st1 = uuid(), st2 = uuid(), rid = uuid()
+const recipe = {
+  id: rid, familyId: famC, title: 'Pannekaker', servings: 4, categories: ['Middag'], version: null,
+  ingredients: [{ id: ing1, name: 'egg', amount: 3, unit: null }, { id: ing2, name: 'melk', amount: 5, unit: 'dl', amountMax: null }],
+  steps: [
+    { id: st1, text: 'Visp egg og melk', action: 'Visp', inputs: [{ kind: 'ingredient', id: ing1 }, { kind: 'ingredient', id: ing2 }] },
+    { id: st2, text: 'Stek', action: 'Stek', durationMin: 2, inputs: [{ kind: 'step', id: st1 }] },
+  ],
+  attachments: [],
+}
+const [{ smaker_save_recipe: saved }] = await as(C, `select smaker_save_recipe($1)`, [JSON.stringify(recipe)])
+check('save_recipe lagrer og returnerer versjon 1', saved.version === 1 && saved.steps.length === 2)
+check('grafen kommer tilbake likt', saved.steps[1].inputs.length === 1 && saved.steps[1].inputs[0].kind === 'step' && saved.steps[1].inputs[0].id === st1 && saved.steps[0].inputs.map((i) => i.id).join() === [ing1, ing2].join() && saved.ingredients[1].amount === 5 && saved.ingredients[0].unit === null)
+check('versjon 1 er lagret i historikken', (await as(C, `select version from smaker_recipe_versions where recipe_id = $1`, [rid])).length === 1)
+
+const [{ smaker_save_recipe: saved2 }] = await as(C, `select smaker_save_recipe($1)`, [JSON.stringify({ ...saved, title: 'Tynne pannekaker' })])
+check('endring gir versjon 2', saved2.version === 2 && saved2.title === 'Tynne pannekaker')
+await expectFail('utdatert versjon avvises (konflikt)', () => as(C, `select smaker_save_recipe($1)`, [JSON.stringify({ ...saved, title: 'Gammel' })]))
+const [{ smaker_get_recipes: list }] = await as(C, `select smaker_get_recipes($1)`, [famC])
+check('get_recipes gir oppskriften', list.length === 1 && list[0].title === 'Tynne pannekaker')
+
+await expectFail('utenforstående kan ikke lagre i familien', () => as(A, `select smaker_save_recipe($1)`, [JSON.stringify({ ...recipe, id: uuid(), ingredients: [], steps: [] })]))
+check('utenforstående får tom liste', (await as(A, `select smaker_get_recipes($1)`, [famC]))[0].smaker_get_recipes.length === 0)
+await expectFail('steg kan ikke bygge på senere steg via save_recipe', () => as(C, `select smaker_save_recipe($1)`, [JSON.stringify({ ...saved2, steps: [{ ...recipe.steps[0], inputs: [{ kind: 'step', id: st2 }] }, recipe.steps[1]] })]))
+
+// Favoritter synlige for familien
+await as(A, `insert into smaker_favorites (recipe_id) values ($1) on conflict do nothing`, [rec.id])
+check('B ser A sin favoritt i samme familie', (await as(B, `select user_id from smaker_favorites`)).length === 2)
+check('C (annen familie) ser ingen favoritter', (await as(C, `select * from smaker_favorites`)).length === 0)
+await expectFail('B kan ikke legge inn favoritt for A', () => as(B, `insert into smaker_favorites (user_id, recipe_id) values ($1, $2)`, [A, rec.id]))
+check('B kan ikke slette A sin favoritt', (await as(B, `delete from smaker_favorites where user_id = $1 returning *`, [A])).length === 0)
+
+await as(C, `select smaker_delete_recipe($1)`, [rid])
+check('slettet oppskrift forsvinner fra listen', (await as(C, `select smaker_get_recipes($1)`, [famC]))[0].smaker_get_recipes.length === 0)

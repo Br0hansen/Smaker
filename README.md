@@ -14,7 +14,25 @@ npm run test:db    # migrasjon + Row Level Security i PGlite
 npm run build      # produksjonsbygg med service worker
 ```
 
-Appen kjører foreløpig på lokal lagring (`localStorage`) med eksempeloppskrifter.
+Appen bruker Supabase når `.env` har URL og publiserbar nøkkel (det har den). Uten dem – eller med `VITE_SMAKER_LOCAL=1` – kjører den i demomodus med eksempeloppskrifter i nettleseren.
+
+```bash
+VITE_SMAKER_LOCAL=1 npm run dev   # demomodus uten innlogging
+```
+
+### Innlogging
+
+Magisk lenke på e-post, uten passord. E-posten skal også inneholde en engangskode: en app installert på hjemskjermen på iPhone deler ikke innlogging med Safari, så der skriver man inn koden i stedet for å trykke på lenken.
+
+**Må settes opp i Supabase-dashbordet (DailyPep → Authentication):**
+1. **URL Configuration → Redirect URLs:** legg til adressene Smaker kjører på, f.eks. `http://localhost:5173` og produksjonsadressen. Ellers sender lenken folk til prosjektets Site URL (DailyPep).
+2. **Email Templates → Magic Link:** ta med `{{ .Token }}` så koden kommer med. Malen deles med de andre appene i prosjektet, så hold teksten nøytral, f.eks.:
+   ```html
+   <h2>Logg inn</h2>
+   <p><a href="{{ .ConfirmationURL }}">Trykk her for å logge inn</a></p>
+   <p>Eller skriv inn denne koden i appen: <strong>{{ .Token }}</strong></p>
+   ```
+3. **SMTP:** Supabase sin innebygde e-post tåler bare noen få e-poster i timen. Sett opp egen SMTP før hele familien skal inn.
 
 ### Supabase
 
@@ -28,7 +46,7 @@ Tabellene ligger i Supabase-prosjektet **DailyPep**, som deles med andre apper. 
 | `smaker_attachments` | Bilder og originalskanninger (filer i bøtta `smaker-media`) |
 | `smaker_favorites`, `smaker_recipe_versions` | Favoritter per person, versjonshistorikk |
 
-RPC-er: `smaker_create_family_invite`, `smaker_accept_family_invite`. Migrasjoner i `supabase/migrations/`, testet med `npm run test:db`.
+RPC-er: `smaker_create_family`, `smaker_get_recipes`, `smaker_save_recipe` (hele grafen + ny versjon i én transaksjon, avviser utdaterte endringer), `smaker_delete_recipe`, `smaker_create_family_invite`, `smaker_accept_family_invite`. Sanntid på `smaker_recipes`. Migrasjoner i `supabase/migrations/`, testet med `npm run test:db`.
 
 ## Arkitektur
 
@@ -61,8 +79,10 @@ Ferdig i denne runden:
 - Innlegging: lim inn (tolking + automatisk kobling), bilde (originalen lagres; tekstgjenkjenning er et grensesnitt uten motor ennå), manuell veiviser i fire steg
 - Familieside med invitasjonslenke (demo), versjonshistorikk med gjenoppretting
 - Supabase-tabeller med RLS opprettet i DailyPep-prosjektet, testet
+- Innlogging med magisk lenke + kode, oppstart (ny kokebok / bli med via invitasjon), lagring, favoritter, versjoner og sanntid mot Supabase
+- Siste kjente oppskrifter hurtigbufres per bruker, så de kan leses offline
 
 Neste:
-- Koble på Supabase (auth, `save_recipe`-RPC som lagrer graf + versjon atomisk, sanntidssynk)
 - Tekstgjenkjenning for bilder (Edge Function med bildemodell, eller Tesseract.js offline)
-- Offline-kø for endringer, kodesplitting (Ionic gjør hovedbundelen stor)
+- Offline-kø for endringer (lagring krever nett i dag), kodesplitting (Ionic gjør hovedbundelen stor)
+- Velge mellom flere familier i appen (i dag brukes den første eller sist valgte)

@@ -6,15 +6,15 @@
     "semantic_hash": ""
   },
   "package.json": {
-    "mtime": 1794745494.9297004,
-    "seen": 1794745529.8152287,
-    "ast_hash": "c7fd36aa3fcfbd347608b3c1746acda4",
+    "mtime": 1794746214.8455806,
+    "seen": 1794746987.897162,
+    "ast_hash": "fffcbbcde5338f5eb5563fb26043c936",
     "semantic_hash": ""
   },
   "src/App.tsx": {
-    "mtime": 1794744697.3254902,
-    "seen": 1794745529.8152318,
-    "ast_hash": "ee1bd22e1497b068d0f2d18e91a98d6b",
+    "mtime": 1794746650.7698922,
+    "seen": 1794746987.8971663,
+    "ast_hash": "362faed5aa9c8ff816b20bae1f27113e",
     "semantic_hash": ""
   },
   "src/components/AppChrome.tsx": {
@@ -42,9 +42,9 @@
     "semantic_hash": ""
   },
   "src/components/RecipeCard.tsx": {
-    "mtime": 1794744743.241493,
-    "seen": 1794745529.8152392,
-    "ast_hash": "dfe7313ffddb52d8be94571fa48f541a",
+    "mtime": 1794746884.2626874,
+    "seen": 1794746987.8975644,
+    "ast_hash": "5d36f079a453f114f681ef5a0ba21114",
     "semantic_hash": ""
   },
   "src/components/RecipeGrid.tsx": {
@@ -54,9 +54,9 @@
     "semantic_hash": ""
   },
   "src/components/ReviewForm.tsx": {
-    "mtime": 1794745013.1747146,
-    "seen": 1794745529.8152409,
-    "ast_hash": "55757bbcfa6638906e907b87ebb1f983",
+    "mtime": 1794746650.772878,
+    "seen": 1794746987.897602,
+    "ast_hash": "8c83dc5143073c4b1210a397ba50454c",
     "semantic_hash": ""
   },
   "src/components/StepFocus.tsx": {
@@ -66,15 +66,15 @@
     "semantic_hash": ""
   },
   "src/components/editor.tsx": {
-    "mtime": 1794745013.1690302,
-    "seen": 1794745529.8152437,
-    "ast_hash": "150a606eb92effd5ec14de5e44c1a4cf",
+    "mtime": 1794746506.2479608,
+    "seen": 1794746987.8976276,
+    "ast_hash": "eaee682d17c3e5718575559f124111ba",
     "semantic_hash": ""
   },
   "src/components/ui.tsx": {
-    "mtime": 1794744735.6454926,
-    "seen": 1794745529.815245,
-    "ast_hash": "a71870a7914417c1d2653081bc18d85b",
+    "mtime": 1794746884.261737,
+    "seen": 1794746987.8976295,
+    "ast_hash": "1029fbd664c9e2f332d935a79af868a0",
     "semantic_hash": ""
   },
   "src/data/seed.ts": {
@@ -84,9 +84,9 @@
     "semantic_hash": ""
   },
   "src/data/store.ts": {
-    "mtime": 1794744576.3358665,
-    "seen": 1794745529.8152473,
-    "ast_hash": "f429d51c5720f90ad10644bdb2e29b5c",
+    "mtime": 1794746589.6416028,
+    "seen": 1794746987.897658,
+    "ast_hash": "74616f6b74d70658564a92a2d1b03476",
     "semantic_hash": ""
   },
   "src/domain/domain.test.ts": {
@@ -102,9 +102,9 @@
     "semantic_hash": ""
   },
   "src/domain/ids.ts": {
-    "mtime": 1794743903.1695242,
-    "seen": 1794745529.8152506,
-    "ast_hash": "6e710b44dd4fb9f1c9ffbb373fec3193",
+    "mtime": 1794746680.5117326,
+    "seen": 1794746987.897707,
+    "ast_hash": "965ae6ac622993c041731654909d058e",
     "semantic_hash": ""
   },
   "src/domain/linker.ts": {
@@ -114,9 +114,9 @@
     "semantic_hash": ""
   },
   "src/domain/parseRecipeText.ts": {
-    "mtime": 1794744585.0055895,
-    "seen": 1794745529.815253,
-    "ast_hash": "19aab51a9e1e0121bc7390c7fe72e8c2",
+    "mtime": 1794746506.2490447,
+    "seen": 1794746987.897732,
+    "ast_hash": "30c16ded8fbbe8bc2b9fe7a1640868b4",
     "semantic_hash": ""
   },
   "src/domain/quantity.ts": {
@@ -180,15 +180,15 @@
     "semantic_hash": ""
   },
   "src/pages/FamilyPage.tsx": {
-    "mtime": 1794745085.12943,
-    "seen": 1794745529.815266,
-    "ast_hash": "f6a312a9aca16f71c57d83736aced624",
+    "mtime": 1794746680.5136082,
+    "seen": 1794746987.898216,
+    "ast_hash": "d37f59d76dff51c3976d0078fbbe44ef",
     "semantic_hash": ""
   },
   "src/pages/HomePage.tsx": {
-    "mtime": 1794745305.5753462,
-    "seen": 1794745529.815267,
-    "ast_hash": "e37821d97b0d42da02e6ce3aa7f05b4c",
+    "mtime": 1794746699.556145,
+    "seen": 1794746987.8982182,
+    "ast_hash": "4634b8bc1f0cf74cfa05975f248477eb",
     "semantic_hash": ""
   },
   "src/pages/ManualWizardPage.tsx": {
@@ -210,21 +210,21 @@
     "semantic_hash": ""
   },
   "src/pages/PhotoPage.tsx": {
-    "mtime": 1794745050.9909503,
-    "seen": 1794745529.8152714,
-    "ast_hash": "4a2564bc5373ca84eb257852636a0680",
+    "mtime": 1794746506.2493608,
+    "seen": 1794746987.898877,
+    "ast_hash": "6f3e1edefd9e645798a980a00405d6d9",
     "semantic_hash": ""
   },
   "src/pages/RecipePage.tsx": {
-    "mtime": 1794744896.169502,
-    "seen": 1794745529.8152728,
-    "ast_hash": "b68cc93174c2d434398fe4881b4346e2",
+    "mtime": 1794746894.249621,
+    "seen": 1794746987.8988795,
+    "ast_hash": "532fb6e93db64a2233afa218dc8a1be7",
     "semantic_hash": ""
   },
   "supabase/tests/rls.test.mjs": {
-    "mtime": 1794745763.0154922,
-    "seen": 1794746066.288415,
-    "ast_hash": "49811bd92378fbf5360b8b9bbb549694",
+    "mtime": 1794746348.687526,
+    "seen": 1794746987.8988814,
+    "ast_hash": "c291d6548e1935316256902b2a53bcd8",
     "semantic_hash": ""
   },
   "tsconfig.json": {
@@ -276,9 +276,9 @@
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1794746064.683453,
-    "seen": 1794746066.2887018,
-    "ast_hash": "d5996d9f2803d27075c61e10bd6d5f5b",
+    "mtime": 1794746985.9590693,
+    "seen": 1794746987.899334,
+    "ast_hash": "734d4722d1238007fec360b87199fb94",
     "semantic_hash": ""
   },
   "index.html": {
@@ -288,15 +288,15 @@
     "semantic_hash": ""
   },
   "memory/CLAUDE.md": {
-    "mtime": 1794746064.6821628,
-    "seen": 1794746066.288727,
-    "ast_hash": "278c26e533bb17ba5bcb739235af8807",
+    "mtime": 1794746985.959869,
+    "seen": 1794746987.8993556,
+    "ast_hash": "a6ec63ecf982522e8b5a5d21245302df",
     "semantic_hash": ""
   },
   "memory/architecture/decisions.md": {
-    "mtime": 1794746064.6815789,
-    "seen": 1794746066.2887292,
-    "ast_hash": "09878a16a2d58051bebe81bf4a987c64",
+    "mtime": 1794746985.9596434,
+    "seen": 1794746987.8993578,
+    "ast_hash": "336d983e0ea7485572fdf869cbf278ee",
     "semantic_hash": ""
   },
   "memory/templates/note.md": {
@@ -336,9 +336,9 @@
     "semantic_hash": ""
   },
   "memory/data/datamodell.md": {
-    "mtime": 1794746064.6775715,
-    "seen": 1794746066.2887313,
-    "ast_hash": "d61ad2e71f82b898447a80177bf5d9a9",
+    "mtime": 1794746985.959376,
+    "seen": 1794746987.8993602,
+    "ast_hash": "942c909a80012e74ed35ac61778b0c05",
     "semantic_hash": ""
   },
   "memory/features/recipe-grid.md": {
@@ -348,15 +348,39 @@
     "semantic_hash": ""
   },
   "memory/logs/2026-11-15-grunnstruktur-og-design.md": {
-    "mtime": 1794746064.6855717,
-    "seen": 1794746066.2887356,
-    "ast_hash": "6382b11cafe6f0e7733904339af44f77",
+    "mtime": 1794746985.959869,
+    "seen": 1794746987.8993874,
+    "ast_hash": "30467bfaeaccee56436fec3e2f7f63fd",
+    "semantic_hash": ""
+  },
+  "src/data/remote.ts": {
+    "mtime": 1794746536.8615997,
+    "seen": 1794746987.8976314,
+    "ast_hash": "224c01132ed77f0c1b6951175bc1732c",
+    "semantic_hash": ""
+  },
+  "src/lib/supabase.ts": {
+    "mtime": 1794746506.2495978,
+    "seen": 1794746987.8981414,
+    "ast_hash": "90910b5108bcb1528ee8f590deafd247",
+    "semantic_hash": ""
+  },
+  "src/pages/AuthPage.tsx": {
+    "mtime": 1794746614.7256043,
+    "seen": 1794746987.8981903,
+    "ast_hash": "b5589e76563146450629a9353a15247b",
+    "semantic_hash": ""
+  },
+  "src/pages/OnboardingPage.tsx": {
+    "mtime": 1794746630.6336052,
+    "seen": 1794746987.8988485,
+    "ast_hash": "e08e3d49f4662578de6a3ea0de661881",
     "semantic_hash": ""
   },
   "package-lock.json": {
-    "mtime": 1794745493.4855375,
-    "seen": 1794745529.8152966,
-    "ast_hash": "f94f01aa43c01774c74c5a1a4d481d8f",
+    "mtime": 1794746214.9415805,
+    "seen": 1794746987.8997061,
+    "ast_hash": "15d55a0ecebbdc4f4bb7fb80dc09ab0c",
     "semantic_hash": ""
   }
 }

@@ -132,3 +132,14 @@ export function SectionTitle({ children, action }: { children: ReactNode; action
     </div>
   )
 }
+
+/**
+ * Hvem oppskriften kommer fra. "Bestemor" er ofte ikke en bruker i appen –
+ * da vises hennes egen forbokstav i en nøytral farge, ikke den som la den inn.
+ */
+export function originMember(members: FamilyMember[], origin: string | undefined, createdBy: string): FamilyMember | undefined {
+  if (origin) {
+    return members.find((m) => m.name.toLowerCase() === origin.toLowerCase()) ?? { id: `origin:${origin}`, name: origin, role: 'member', color: '#8A7B70' }
+  }
+  return members.find((m) => m.id === createdBy)
+}

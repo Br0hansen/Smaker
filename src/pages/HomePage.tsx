@@ -1,10 +1,10 @@
-import { IonContent, IonIcon, IonPage, useIonRouter } from '@ionic/react'
-import { add, searchOutline } from 'ionicons/icons'
+import { IonContent, IonIcon, IonPage, useIonRouter, useIonToast } from '@ionic/react'
+import { add, cloudOfflineOutline, searchOutline, sparklesOutline } from 'ionicons/icons'
 import { useMemo, useState } from 'react'
 import { MainHeader, TabBar } from '../components/AppChrome'
 import { RecipeCard } from '../components/RecipeCard'
 import { SectionTitle } from '../components/ui'
-import { useFavorites, useFamily, useRecipes, useStore } from '../data/store'
+import { importSampleRecipes, useFavorites, useFamily, useRecipes, useStore, useSyncError } from '../data/store'
 import type { Recipe } from '../domain/types'
 
 function normalize(s: string) {
@@ -29,6 +29,7 @@ export default function HomePage() {
   const router = useIonRouter()
   const [q, setQ] = useState('')
   const [category, setCategory] = useState<string | null>(null)
+  const syncError = useSyncError()
 
   const members = useMemo(() => new Map(family.members.map((m) => [m.id, m.name])), [family])
   const categories = useMemo(() => [...new Set(recipes.flatMap((r) => r.categories))].sort((a, b) => a.localeCompare(b, 'nb')), [recipes])
@@ -82,7 +83,15 @@ export default function HomePage() {
             )}
           </section>
 
-          {filtering ? (
+          {syncError && (
+            <p className="-mt-4 flex items-center gap-2 self-start rounded-full bg-paper-2 px-3 py-1.5 text-[0.88rem] font-bold text-ink-2">
+              <IonIcon icon={cloudOfflineOutline} aria-hidden /> {syncError}
+            </p>
+          )}
+
+          {recipes.length === 0 ? (
+            <EmptyKitchen onAdd={() => router.push('/ny')} />
+          ) : filtering ? (
             <section aria-live="polite">
               <SectionTitle>
                 {results.length === 0 ? 'Ingen treff' : `${results.length} ${results.length === 1 ? 'oppskrift' : 'oppskrifter'}`}
@@ -156,6 +165,45 @@ function AddPrompt({ onClick }: { onClick: () => void }) {
       </div>
       <button className="btn btn-primary min-h-14 px-6 text-[1.05rem]" onClick={onClick}>
         <IonIcon icon={add} aria-hidden className="text-2xl" /> Legg til oppskrift
+      </button>
+    </section>
+  )
+}
+
+function EmptyKitchen({ onAdd }: { onAdd: () => void }) {
+  const [busy, setBusy] = useState(false)
+  const [toast] = useIonToast()
+  return (
+    <section className="flex flex-col items-start gap-5">
+      <div
+        aria-hidden
+        className="gingham h-36 w-full rounded-[var(--radius-card)]"
+        style={{ ['--tone' as string]: 'var(--color-sage)', ['--tone-bg' as string]: 'var(--color-sage-soft)' }}
+      />
+      <div>
+        <h2 className="text-[1.6rem] font-semibold">Kokeboka er tom – foreløpig</h2>
+        <p className="mt-2 max-w-xl text-ink-2">
+          Start med en oppskrift du kan utenat, en lapp fra skuffen eller en favoritt fra nettet. Resten av familien ser den med en gang.
+        </p>
+      </div>
+      <button className="btn btn-primary min-h-14 px-6 text-[1.05rem]" onClick={onAdd}>
+        <IonIcon icon={add} aria-hidden className="text-2xl" /> Legg inn den første oppskriften
+      </button>
+      <button
+        className="btn btn-ghost"
+        disabled={busy}
+        onClick={async () => {
+          setBusy(true)
+          try {
+            await importSampleRecipes()
+          } catch (e) {
+            toast({ message: `Klarte ikke å legge inn eksemplene: ${(e as Error).message}`, duration: 4000, position: 'top', color: 'danger' })
+          } finally {
+            setBusy(false)
+          }
+        }}
+      >
+        <IonIcon icon={sparklesOutline} aria-hidden /> {busy ? 'Legger inn …' : 'Eller: legg inn fire eksempeloppskrifter'}
       </button>
     </section>
   )
