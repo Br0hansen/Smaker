@@ -49,6 +49,7 @@ React + TypeScript, Tailwind CSS v4, Vite, vite-plugin-pwa. Supabase (database, 
 - Ionic CSS importeres i `@layer ionic` under Tailwind-utilities, ellers vinner Ionic sin typography.css over klassene våre
 - `@ionic/react-router` 9 krever React Router 6 (ikke 7)
 - Navigasjon: Hjem og Familien er Ionic-faner (`IonTabs` i `src/components/MainTabs.tsx`, containerrute `/*` sist i ytre outlet). Oppskrift/innlegging/matlaging ligger utenfor fanene. Bruk aldri `router.push(path, 'none', 'replace')` for fanebytte – det ga låste knapper på telefon. Toppmenyen på PC bytter fane med `NavContext.changeTab`
+- Appfølelse/scroll lock: `html` og `ion-content::part(scroll)` har `overscroll-behavior: none`; knapper/menyer har `user-select: none`. Klypezoom er bevisst IKKE slått av (lesbarhet for besteforeldre) – dobbelttrykk-zoom er av via Ionic (`touch-action: manipulation`)
 - `IonTabBar` dropper alle barn som ikke er `IonTabButton`; «Legg til» ligger derfor i `slot="bottom"` i `IonTabs`, absolutt plassert over midten
 - Sjekk exit-koden til `npm test`, ikke bare «Tests N passed» – en fil Vitest ikke forstår gir «Failed Suites» mens alle tester passerer. Databasesjekken heter derfor `rls-check.mjs` (ikke `*.test.mjs`)
 - Playwright i cloud-maskinen: bruk `require('playwright')` (CommonJS); ESM-import finner den ikke

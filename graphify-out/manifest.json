@@ -276,15 +276,15 @@
     "semantic_hash": ""
   },
   "index.html": {
-    "mtime": 1794743790.3959253,
-    "seen": 1794745529.8152874,
-    "ast_hash": "fe26156c52863a289bd01f8d2028f665",
+    "mtime": 1794752767.488003,
+    "seen": 1794752833.4191701,
+    "ast_hash": "f66b46a44dee911f2c894918942e2b9c",
     "semantic_hash": ""
   },
   "memory/CLAUDE.md": {
-    "mtime": 1794752651.3294554,
-    "seen": 1794752655.9342444,
-    "ast_hash": "bd6a1f8a7ea62854028b53630c4ef1cb",
+    "mtime": 1794752832.5933788,
+    "seen": 1794752833.4191725,
+    "ast_hash": "a9ccb171b4b9d10695507ffbe948a2a7",
     "semantic_hash": ""
   },
   "memory/architecture/decisions.md": {
