@@ -32,7 +32,7 @@ export default function App() {
   if (status === 'onboarding') return <IonApp><OnboardingPage /></IonApp>
   return (
     <IonApp>
-      <IonReactRouter>
+      <IonReactRouter basename={import.meta.env.BASE_URL.replace(/\/$/, '')}>
         <IonRouterOutlet>
           <Route path="/" element={<HomePage />} />
           <Route path="/familie" element={<FamilyPage />} />

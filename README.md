@@ -48,6 +48,12 @@ Tabellene ligger i Supabase-prosjektet **DailyPep**, som deles med andre apper. 
 
 RPC-er: `smaker_create_family`, `smaker_get_recipes`, `smaker_save_recipe` (hele grafen + ny versjon i én transaksjon, avviser utdaterte endringer), `smaker_delete_recipe`, `smaker_create_family_invite`, `smaker_accept_family_invite`. Sanntid på `smaker_recipes`. Migrasjoner i `supabase/migrations/`, testet med `npm run test:db`.
 
+## Publisering (GitHub Pages)
+
+Appen publiseres automatisk til **https://br0hansen.github.io/Smaker/** når `main` oppdateres (`.github/workflows/deploy.yml`). Workflowen kjører testene, bygger med `VITE_BASE=/Smaker/` og kopierer `index.html` til `404.html`, så direkte lenker som `/Smaker/oppskrift/…` virker.
+
+Én gang: **Settings → Pages → Source: GitHub Actions**. Legg også `https://br0hansen.github.io/Smaker/` til under Supabase → Authentication → URL Configuration → Redirect URLs.
+
 ## Arkitektur
 
 | Lag | Hva | Hvor |

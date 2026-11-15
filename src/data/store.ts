@@ -141,7 +141,7 @@ export async function deleteRecipe(recipeId: string) {
 /** Lager en invitasjonslenke. Med Supabase: engangstoken som går ut etter sju dager. */
 export async function createInviteLink(): Promise<string> {
   const token = state.mode === 'remote' ? await remote.createInvite(supabase!, state.family.id) : newId().replace(/-/g, '')
-  return `${location.origin}/bli-med/${encodeURIComponent(token)}`
+  return `${appUrl()}bli-med/${encodeURIComponent(token)}`
 }
 
 export async function updateMyName(name: string) {
@@ -167,6 +167,8 @@ function upsertRecipe(r: Recipe) {
 // =====================================================================
 
 const INVITE_KEY = 'smaker:invite'
+/** Full adresse til appen, f.eks. https://br0hansen.github.io/Smaker/ */
+export const appUrl = () => location.origin + import.meta.env.BASE_URL
 
 export function pendingInvite(): string | null {
   try { return localStorage.getItem(INVITE_KEY) } catch { return null }
@@ -177,10 +179,10 @@ function clearInvite() {
 
 /** Fanger opp /bli-med/<token> før ruteren starter, og husker invitasjonen til etter innlogging. */
 function captureInviteFromUrl() {
-  const m = location.pathname.match(/^\/bli-med\/([^/?#]+)/)
+  const m = location.pathname.match(/\/bli-med\/([^/?#]+)/)
   if (!m) return
   try { localStorage.setItem(INVITE_KEY, decodeURIComponent(m[1])) } catch { /* ignorer */ }
-  history.replaceState(null, '', '/')
+  history.replaceState(null, '', import.meta.env.BASE_URL)
 }
 
 /** Henter token fra en innlimt invitasjonslenke eller kode. */
@@ -194,7 +196,7 @@ export function parseInvite(text: string): string | null {
 export async function sendMagicLink(email: string) {
   const { error } = await supabase!.auth.signInWithOtp({
     email: email.trim(),
-    options: { emailRedirectTo: location.origin, shouldCreateUser: true },
+    options: { emailRedirectTo: appUrl(), shouldCreateUser: true },
   })
   if (error) throw new Error(authMessage(error.message))
 }
