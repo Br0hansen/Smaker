@@ -1,0 +1,13 @@
+node_modules
+dist
+dev-dist
+*.local
+.env
+.env.*
+!.env.example
+*.tsbuildinfo
+# Obsidian: personlige innstillinger for vaultet i memory/
+memory/.obsidian/workspace*.json
+memory/.obsidian/cache
+# Graphify cache
+graphify-out/cache/
