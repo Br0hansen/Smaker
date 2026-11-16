@@ -10,3 +10,6 @@ memory/.obsidian/cache
 # Graphify cache
 graphify-out/cache/
 dist-local
+
+# Lokal Supabase CLI-tilkobling (kan inneholde prosjektmetadata/tilkoblingsadresse)
+supabase/.temp/
