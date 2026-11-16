@@ -3,7 +3,7 @@ import { checkmark, copyOutline, createOutline, lockClosedOutline, logOutOutline
 import { useState } from 'react'
 import { MainHeader } from '../components/AppChrome'
 import { Avatar, SectionTitle } from '../components/ui'
-import { createInviteLink, deleteFamily, signOut, updateMyName, useEmail, useFamily, useMode, useRecipes, useUserId } from '../data/store'
+import { createInviteLink, deleteFamily, signOut, updateMemberRole, updateMyName, useEmail, useFamily, useMode, useRecipes, useUserId } from '../data/store'
 import type { FamilyInvite } from '../data/store'
 import type { MemberRole } from '../domain/types'
 
@@ -19,6 +19,7 @@ export default function FamilyPage() {
   const [busy, setBusy] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
+  const [changingRole, setChangingRole] = useState<string | null>(null)
   const [editing, setEditing] = useState(false)
   const myMember = family.members.find((m) => m.id === me)
   const [name, setName] = useState(myMember?.name ?? '')
@@ -77,6 +78,18 @@ export default function FamilyPage() {
     }
   }
 
+  const changeRole = async (memberId: string, role: Extract<MemberRole, 'admin' | 'member'>) => {
+    setChangingRole(memberId)
+    try {
+      await updateMemberRole(memberId, role)
+      say(role === 'admin' ? 'Medlemmet er nå administrator' : 'Administratoren er nå vanlig medlem')
+    } catch (e) {
+      say(`Klarte ikke å endre rollen: ${(e as Error).message}`, 'danger')
+    } finally {
+      setChangingRole(null)
+    }
+  }
+
   return (
     <IonPage>
       <MainHeader />
@@ -117,7 +130,20 @@ export default function FamilyPage() {
                       <IonIcon icon={createOutline} className="text-xl" />
                     </button>
                   )}
-                  {!(m.id === me && editing) && <span className={`chip ${m.role === 'member' ? '' : 'bg-ink text-paper'}`}>{ROLE[m.role]}</span>}
+                  {!(m.id === me && editing) && (
+                    <div className="flex shrink-0 flex-col items-end gap-1.5">
+                      <span className={`chip ${m.role === 'member' ? '' : 'bg-ink text-paper'}`}>{ROLE[m.role]}</span>
+                      {myMember?.role === 'owner' && m.id !== me && m.role !== 'owner' && (
+                        <button
+                          className="btn btn-ghost min-h-8 px-2 text-[0.78rem]"
+                          onClick={() => void changeRole(m.id, m.role === 'admin' ? 'member' : 'admin')}
+                          disabled={changingRole !== null}
+                        >
+                          {changingRole === m.id ? 'Endrer …' : m.role === 'admin' ? 'Gjør til medlem' : 'Gjør til administrator'}
+                        </button>
+                      )}
+                    </div>
+                  )}
                 </li>
               ))}
             </ul>

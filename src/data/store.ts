@@ -11,7 +11,7 @@
 import { useSyncExternalStore } from 'react'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 import { newId } from '../domain/ids'
-import type { Family, Recipe, RecipeVersion } from '../domain/types'
+import type { Family, MemberRole, Recipe, RecipeVersion } from '../domain/types'
 import { supabase } from '../lib/supabase'
 import * as remote from './remote'
 import { CURRENT_MEMBER_ID, SEED_FAMILY, SEED_FAVORITES, SEED_RECIPES } from './seed'
@@ -99,7 +99,7 @@ export async function saveRecipe(input: RecipeInput): Promise<Recipe> {
     set({ versions: state.versions.filter((v) => v.recipeId !== saved.id) })
     return saved
   } catch (e) {
-    if (e instanceof remote.ConflictError) void refreshRecipes()
+    if (e instanceof remote.ConflictError) void refreshFamily()
     throw e
   }
 }
@@ -158,6 +158,20 @@ function localInviteCode(): string {
 export async function updateMyName(name: string) {
   if (state.mode === 'remote') await remote.updateMyName(supabase!, state.family.id, state.userId, name)
   set({ family: { ...state.family, members: state.family.members.map((m) => (m.id === state.userId ? { ...m, name } : m)) } })
+}
+
+/** Bare en eier kan endre rollen til et annet familiemedlem. */
+export async function updateMemberRole(userId: string, role: MemberRole) {
+  const me = state.family.members.find((member) => member.id === state.userId)
+  if (me?.role !== 'owner') throw new Error('Bare en eier kan endre roller.')
+  if (userId === state.userId) throw new Error('Du kan ikke endre din egen rolle.')
+  if (state.mode === 'remote') await remote.updateMemberRole(supabase!, state.family.id, userId, role)
+  set({
+    family: {
+      ...state.family,
+      members: state.family.members.map((member) => (member.id === userId ? { ...member, role } : member)),
+    },
+  })
 }
 
 /** Sletter aktiv familie. Serveren godkjenner handlingen bare for eiere. */
@@ -305,7 +319,7 @@ async function openFamily(familyId: string) {
 }
 
 let refreshTimer: ReturnType<typeof setTimeout> | undefined
-async function refreshRecipes() {
+async function refreshFamily() {
   if (state.mode !== 'remote' || state.status !== 'ready' || !state.family.id) return
   try {
     const data = await remote.loadFamily(supabase!, state.family.id)
@@ -322,7 +336,11 @@ function listenForChanges(familyId: string) {
     .channel(`smaker-family-${familyId}`)
     .on('postgres_changes', { event: '*', schema: 'public', table: 'smaker_recipes', filter: `family_id=eq.${familyId}` }, () => {
       clearTimeout(refreshTimer)
-      refreshTimer = setTimeout(refreshRecipes, 400)
+      refreshTimer = setTimeout(refreshFamily, 400)
+    })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'smaker_family_members', filter: `family_id=eq.${familyId}` }, () => {
+      clearTimeout(refreshTimer)
+      refreshTimer = setTimeout(refreshFamily, 400)
     })
     .subscribe()
 }
@@ -411,9 +429,9 @@ if (supabase) {
       else if (event === 'SIGNED_OUT' || event === 'INITIAL_SESSION') onSignedOut()
     }, 0)
   })
-  window.addEventListener('online', () => void refreshRecipes())
+  window.addEventListener('online', () => void refreshFamily())
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') void refreshRecipes()
+    if (document.visibilityState === 'visible') void refreshFamily()
   })
 } else {
   state = loadLocal()

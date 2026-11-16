@@ -128,6 +128,11 @@ export async function updateMyName(sb: SupabaseClient, familyId: string, userId:
   if (error) fail(error)
 }
 
+export async function updateMemberRole(sb: SupabaseClient, familyId: string, userId: string, role: MemberRole) {
+  const { error } = await sb.rpc('smaker_set_member_role', { p_family: familyId, p_user: userId, p_role: role })
+  if (error) fail(error, 'Klarte ikke å endre rollen.')
+}
+
 /**
  * Sletter først filene i familiens private Storage-mappe, deretter familien.
  * Databasens RLS-regel er den endelige autorisasjonen: bare en eier får slettet.
