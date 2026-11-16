@@ -40,8 +40,8 @@ const Ingredient = z.object({
 })
 
 const Step = z.object({
-  text: z.string().describe('Hele instruksjonen, avskrevet'),
-  action: z.string().describe('Ett kort handlingsord i imperativ: Stek, Bland, Pisk, Kok, Elt, Hev …'),
+  text: z.string().describe('Hele instruksjonen, med åpenbare avlesnings- og skrivefeil rettet uten å endre meningen'),
+  action: z.string().describe('Kort, forståelig stegtittel i imperativ, vanligvis 2–5 ord: «Stek løken», «Bland det tørre», «Ha i smøret». Unngå utydelige titler som bare «Ha» eller «Gjør»'),
   ingredientIndexes: z.array(z.number().int()).describe('0-baserte indekser til ingrediensene som tas i bruk FØRST i dette steget'),
   buildsOnSteps: z.array(z.number().int()).describe('Indekser til TIDLIGERE steg hvis resultat brukes her'),
   produces: z.string().nullable().describe('Navn på mellomproduktet steget lager (f.eks. «Saus»), ellers null'),
@@ -78,12 +78,12 @@ Regn om amerikanske og britiske mål til metriske – det er ren omregning, ikke
 const SYSTEM = `Du leser av oppskrifter fra bilder for en norsk familiekokebok. Bildene kan være skjermbilder, sider fra kokebøker eller håndskrevne oppskriftskort – ofte gamle, med utydelig skrift, forkortelser og gammel rettskrivning.
 
 Regler:
-1. Skriv av det som faktisk står. Finn aldri på mengder, tider, temperaturer, porsjoner eller steg. Det som ikke står, blir null.
-2. Rett åpenbare skrivefeil, men ikke skriv om innholdet. ${LANG_RULES}
+1. Bevar opplysningene og meningen i originalen. Finn aldri på ingredienser, mengder, tider, temperaturer, porsjoner eller steg. Det som ikke står, blir null.
+2. Lever lesbar oppskriftstekst, ikke en rå og bokstavtro OCR-avskrift. Bruk grammatikk, resten av setningen og vanlig oppskriftsspråk til å rette åpenbare avlesningsfeil, manglende bokstaver og skrivefeil direkte i teksten. Eksempel: «Smuldr ... i smørt» skal bli «Smuldre ... i smøret». Ikke moderniser gamle ord, dialekt eller formuleringer når de gir mening, og ikke endre meningsinnholdet. ${LANG_RULES}
 3. Mengder som tall: «½» → 0.5, «1 1/2» → 1.5, «2–3» → amount 2 og amountMax 3. Kjente enheter skrives som g, kg, dl, l, ml, ss, ts, krm, stk, fedd, boks, pk eller klype. Gamle norske enheter (kopp, glass, pund, «en neve») beholdes slik de står og nevnes i «uncertain».
-4. Koblinger til rutenettet: «ingredientIndexes» er ingrediensene som tas i bruk første gang i steget. «buildsOnSteps» er tidligere steg som steget bygger videre på. En parallell delprosess (f.eks. «kok pastaen» mens sausen lages) bygger ikke på forrige steg.
+4. «action» er en kort, men meningsfull tittel for steget. Bruk vanligvis 2–5 ord, f.eks. «Ha i smøret» i stedet for bare «Ha». «ingredientIndexes» er ingrediensene som tas i bruk første gang i steget. «buildsOnSteps» er tidligere steg som steget bygger videre på. En parallell delprosess (f.eks. «kok pastaen» mens sausen lages) bygger ikke på forrige steg.
 5. Er fremgangsmåten ett langt avsnitt, del den i naturlige steg uten å endre innholdet.
-6. «uncertain»: alt du ikke kunne lese sikkert, med kort forklaring. Tom liste hvis alt er tydelig.
+6. «uncertain»: Når én tolkning er klart mest sannsynlig ut fra sammenhengen, bruk den naturlige teksten. Hvis to eller flere tolkninger fortsatt er rimelige, velg den mest sannsynlige og noter ordet eller delen med en kort forklaring her. Tom liste hvis alt er tydelig.
 7. Er bildet ikke en oppskrift: isRecipe = false, tom tittel og tomme lister.
 8. Flere bilder hører til samme oppskrift (f.eks. forside og bakside av et kort).`
 
@@ -101,7 +101,7 @@ const SYSTEM_SUGGEST = `Du foreslår en fremgangsmåte for en oppskrift i en nor
 Regler:
 1. Lag en vanlig, fornuftig fremgangsmåte for retten med de oppgitte ingrediensene, i riktig rekkefølge. Bruk bare ingrediensene i listen, og bruk alle der det er naturlig.
 2. Finn aldri på tider, temperaturer eller mengder. Feltene durationMin, durationMaxMin og temperatureC skal være null. Beskriv i stedet hvordan man ser at noe er ferdig («til løken er blank», «til de er gylne»). Trengs ovn, skriv «forvarm ovnen» uten temperatur.
-3. Korte, tydelige steg på norsk bokmål, i imperativ – også om tittelen eller ingrediensene er på et annet språk. «action» er ett handlingsord (Stek, Bland, Kok …).
+3. Korte, tydelige steg på norsk bokmål, i imperativ – også om tittelen eller ingrediensene er på et annet språk. «action» er en kort, men meningsfull stegtittel på vanligvis 2–5 ord («Stek løken», «Bland det tørre», «Ha i smøret»), ikke bare et utydelig ord som «Ha».
 4. «ingredientIndexes» er 0-baserte indekser i ingredienslisten for ingrediensene som tas i bruk første gang i steget; «buildsOnSteps» er tidligere steg steget bygger på. Parallelle delprosesser (f.eks. koke pasta mens sausen lages) bygger ikke på forrige steg.`
 
 // ---------------- Modellkall ----------------

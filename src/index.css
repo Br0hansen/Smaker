@@ -135,10 +135,73 @@
     width: 100%;
     max-width: 72rem;
     margin-inline: auto;
-    padding-inline: 1rem;
+    padding-left: max(1rem, env(safe-area-inset-left));
+    padding-right: max(1rem, env(safe-area-inset-right));
   }
   @media (min-width: 768px) {
     .page-wrap { padding-inline: 2rem; }
+  }
+
+  /* Recipe Grid skalerer etter faktisk innholdsbredde, ikke telefonmodell. */
+  .recipe-grid--compact {
+    container-type: inline-size;
+    --grid-gap: 3px;
+    --grid-row-min: 2.35rem;
+    --grid-pad: 0.32rem;
+    --grid-font: 0.74rem;
+    --grid-step-font: 0.69rem;
+    --grid-number: 1.05rem;
+  }
+  @media (max-width: 374px) {
+    .recipe-grid--compact {
+      --grid-gap: 2px;
+      --grid-row-min: 2.1rem;
+      --grid-pad: 0.22rem;
+      --grid-font: 0.68rem;
+      --grid-step-font: 0.66rem;
+      --grid-number: 1rem;
+    }
+  }
+  @supports (width: 1cqi) {
+    .recipe-grid--compact {
+      --grid-gap: clamp(2px, 0.9cqi, 4px);
+      --grid-row-min: clamp(2.1rem, 12cqi, 2.6rem);
+      --grid-pad: clamp(0.22rem, 1.5cqi, 0.38rem);
+      --grid-font: clamp(0.68rem, 3.3cqi, 0.78rem);
+      --grid-step-font: clamp(0.66rem, 3.1cqi, 0.72rem);
+      --grid-number: clamp(1rem, 5cqi, 1.1rem);
+    }
+  }
+  .recipe-grid--compact .recipe-grid__ingredient,
+  .recipe-grid--compact .recipe-grid__step {
+    padding: var(--grid-pad);
+    border-radius: 0.55rem;
+  }
+  .recipe-grid--compact .recipe-grid__ingredient-text { font-size: var(--grid-font); }
+  .recipe-grid--compact .recipe-grid__step-text {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 4;
+    font-size: var(--grid-step-font);
+    line-height: 1.08;
+  }
+  .recipe-grid--compact[data-dense='true'] .recipe-grid__step-text { -webkit-line-clamp: 3; }
+  .recipe-grid--compact[data-dense='true'] .recipe-grid__step-header {
+    flex-direction: column;
+    gap: 0.16rem;
+  }
+  .recipe-grid--compact .recipe-grid__number {
+    width: var(--grid-number);
+    height: var(--grid-number);
+    font-size: 0.61rem;
+  }
+  @supports (width: 1cqi) {
+    .recipe-grid--compact .recipe-grid__ingredient,
+    .recipe-grid--compact .recipe-grid__step {
+      border-radius: clamp(0.45rem, 2.3cqi, 0.6rem);
+    }
+    .recipe-grid--compact .recipe-grid__number { font-size: clamp(0.58rem, 2.5cqi, 0.64rem); }
   }
 
   /* Rutete duk – omslag for oppskrifter uten bilde */

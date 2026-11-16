@@ -150,7 +150,7 @@ function Rail({ recipes, isFav }: { recipes: Recipe[]; isFav: (id: string) => bo
 
 function CardGrid({ recipes, isFav }: { recipes: Recipe[]; isFav: (id: string) => boolean }) {
   return (
-    <div className="grid grid-cols-1 gap-4 min-[420px]:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+    <div className="grid grid-cols-3 gap-2 sm:gap-3 lg:gap-4">
       {recipes.map((r) => (
         <RecipeCard key={r.id} recipe={r} favorite={isFav(r.id)} />
       ))}
