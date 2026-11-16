@@ -1,0 +1,2 @@
+-- Historikkmarkør: migrasjonen er allerede kjørt i det delte DailyPep-prosjektet.
+-- Den tilhører en annen app og skal ikke spilles av fra Smaker-repoet.

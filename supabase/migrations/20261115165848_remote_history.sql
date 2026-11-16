@@ -1,0 +1,2 @@
+-- Historikkmarkør: denne eldre Smaker-migrasjonen er allerede kjørt i DailyPep.
+-- Den kanoniske, sammenslåtte versjonen finnes i migrasjonene med 2026111500-prefiks.
