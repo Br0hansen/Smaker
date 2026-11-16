@@ -113,6 +113,15 @@ check('C (annen familie) ser ingen favoritter', (await as(C, `select * from smak
 await expectFail('B kan ikke legge inn favoritt for A', () => as(B, `insert into smaker_favorites (user_id, recipe_id) values ($1, $2)`, [A, rec.id]))
 check('B kan ikke slette A sin favoritt', (await as(B, `delete from smaker_favorites where user_id = $1 returning *`, [A])).length === 0)
 
+// Alle eiere kan slette familien, mens vanlige medlemmer ikke kan.
+const [{ smaker_create_family: deleteFam }] = await as(A, `select smaker_create_family('Familien som skal slettes', 'Anne')`)
+const [{ smaker_create_family_invite: deleteInvite }] = await as(A, `select smaker_create_family_invite($1)`, [deleteFam])
+await as(B, `select smaker_accept_family_invite($1, 'Bjørn')`, [deleteInvite])
+check('vanlig medlem kan ikke slette familien', (await as(B, `delete from smaker_families where id = $1 returning id`, [deleteFam])).length === 0)
+await as(A, `update smaker_family_members set role = 'owner' where family_id = $1 and user_id = $2`, [deleteFam, B])
+check('en annen eier kan slette familien', (await as(B, `delete from smaker_families where id = $1 returning id`, [deleteFam])).length === 1)
+check('sletting fjerner medlemskapene', (await as(A, `select * from smaker_family_members where family_id = $1`, [deleteFam])).length === 0)
+
 await as(C, `select smaker_delete_recipe($1)`, [rid])
 check('slettet oppskrift forsvinner fra listen', (await as(C, `select smaker_get_recipes($1)`, [famC]))[0].smaker_get_recipes.length === 0)
 

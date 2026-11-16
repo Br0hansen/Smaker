@@ -149,6 +149,33 @@ export async function updateMyName(name: string) {
   set({ family: { ...state.family, members: state.family.members.map((m) => (m.id === state.userId ? { ...m, name } : m)) } })
 }
 
+/** Sletter aktiv familie. Serveren godkjenner handlingen bare for eiere. */
+export async function deleteFamily() {
+  if (state.mode !== 'remote') throw new Error('Familier kan ikke slettes i demomodus.')
+  const familyId = state.family.id
+  const me = state.family.members.find((member) => member.id === state.userId)
+  if (!familyId || me?.role !== 'owner') throw new Error('Bare en eier kan slette familien.')
+
+  await remote.deleteFamily(supabase!, familyId)
+
+  if (channel) void supabase!.removeChannel(channel)
+  channel = null
+  try {
+    localStorage.removeItem(FAMILY_KEY)
+    localStorage.removeItem(cacheKey(state.userId))
+  } catch { /* privat modus – ikke kritisk */ }
+
+  // Slettingen er allerede fullført. Tøm derfor den gamle familien med en gang,
+  // også hvis lasting av et annet medlemskap skulle feile etterpå.
+  set({ status: 'onboarding', family: EMPTY_FAMILY, recipes: [], versions: [], favorites: {}, syncError: undefined })
+  try {
+    const memberships = await remote.loadMemberships(supabase!, state.userId)
+    if (memberships.length > 0) await openFamily(memberships[0].familyId)
+  } catch {
+    set({ syncError: 'Familien er slettet, men andre familier kunne ikke lastes akkurat nå.' })
+  }
+}
+
 /** Legger eksempeloppskriftene inn i familiens kokebok (fine å starte med). */
 export async function importSampleRecipes() {
   for (const r of [...SEED_RECIPES].reverse()) {

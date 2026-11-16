@@ -1,9 +1,9 @@
-import { IonContent, IonIcon, IonPage, useIonToast } from '@ionic/react'
-import { checkmark, copyOutline, createOutline, lockClosedOutline, logOutOutline, personAddOutline, shareOutline } from 'ionicons/icons'
+import { IonAlert, IonContent, IonIcon, IonPage, useIonToast } from '@ionic/react'
+import { checkmark, copyOutline, createOutline, lockClosedOutline, logOutOutline, personAddOutline, shareOutline, trashOutline } from 'ionicons/icons'
 import { useState } from 'react'
 import { MainHeader } from '../components/AppChrome'
 import { Avatar, SectionTitle } from '../components/ui'
-import { createInviteLink, signOut, updateMyName, useEmail, useFamily, useMode, useRecipes, useUserId } from '../data/store'
+import { createInviteLink, deleteFamily, signOut, updateMyName, useEmail, useFamily, useMode, useRecipes, useUserId } from '../data/store'
 import type { MemberRole } from '../domain/types'
 
 const ROLE: Record<MemberRole, string> = { owner: 'Eier', admin: 'Administrator', member: 'Medlem' }
@@ -16,6 +16,8 @@ export default function FamilyPage() {
   const me = useUserId()
   const [link, setLink] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+  const [confirmingDelete, setConfirmingDelete] = useState(false)
   const [editing, setEditing] = useState(false)
   const myMember = family.members.find((m) => m.id === me)
   const [name, setName] = useState(myMember?.name ?? '')
@@ -61,6 +63,16 @@ export default function FamilyPage() {
       setEditing(false)
     } catch (e) {
       say(`Klarte ikke å lagre navnet: ${(e as Error).message}`, 'danger')
+    }
+  }
+
+  const removeFamily = async () => {
+    setDeleting(true)
+    try {
+      await deleteFamily()
+    } catch (e) {
+      say(`Klarte ikke å slette familien: ${(e as Error).message}`, 'danger')
+      setDeleting(false)
     }
   }
 
@@ -146,7 +158,41 @@ export default function FamilyPage() {
               </button>
             </section>
           )}
+          {mode === 'remote' && myMember?.role === 'owner' && (
+            <section className="flex flex-col gap-4 rounded-[var(--radius-card)] bg-tomato-soft p-6">
+              <div>
+                <h2 className="text-[1.45rem] font-semibold text-tomato-deep">Slett familien</h2>
+                <p className="mt-2 text-ink-2">Dette sletter familien, alle oppskriftene og alle bildene permanent for alle medlemmer.</p>
+              </div>
+              <button className="btn btn-secondary self-start border-tomato text-tomato-deep" onClick={() => setConfirmingDelete(true)} disabled={deleting}>
+                <IonIcon icon={trashOutline} aria-hidden /> {deleting ? 'Sletter …' : 'Slett familien permanent'}
+              </button>
+            </section>
+          )}
         </div>
+
+        <IonAlert
+          isOpen={confirmingDelete}
+          onDidDismiss={() => setConfirmingDelete(false)}
+          header="Slett familien permanent?"
+          message={`Skriv familienavnet «${family.name}» for å bekrefte. Handlingen kan ikke angres.`}
+          inputs={[{ name: 'familyName', type: 'text', placeholder: family.name, attributes: { maxLength: 80, autoComplete: 'off' } }]}
+          buttons={[
+            { text: 'Avbryt', role: 'cancel' },
+            {
+              text: 'Slett permanent',
+              role: 'destructive',
+              handler: (values) => {
+                if (values.familyName?.trim() !== family.name) {
+                  say('Familienavnet stemmer ikke.', 'danger')
+                  return false
+                }
+                void removeFamily()
+                return true
+              },
+            },
+          ]}
+        />
       </IonContent>
     </IonPage>
   )

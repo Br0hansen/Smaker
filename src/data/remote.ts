@@ -107,6 +107,36 @@ export async function updateMyName(sb: SupabaseClient, familyId: string, userId:
   if (error) fail(error)
 }
 
+/**
+ * Sletter først filene i familiens private Storage-mappe, deretter familien.
+ * Databasens RLS-regel er den endelige autorisasjonen: bare en eier får slettet.
+ */
+export async function deleteFamily(sb: SupabaseClient, familyId: string) {
+  const paths: string[] = []
+  const pageSize = 100
+  let offset = 0
+
+  // Bilder lastes opp direkte i <familie-id>/, men vi blar gjennom hele mappen
+  // slik at også store familiebibliotek blir ryddet.
+  while (true) {
+    const { data, error } = await sb.storage.from(MEDIA_BUCKET).list(familyId, { limit: pageSize, offset })
+    if (error) fail(error, 'Klarte ikke å finne familiebildene.')
+    const page = data ?? []
+    paths.push(...page.filter((file) => file.id).map((file) => `${familyId}/${file.name}`))
+    if (page.length < pageSize) break
+    offset += page.length
+  }
+
+  for (let i = 0; i < paths.length; i += pageSize) {
+    const { error } = await sb.storage.from(MEDIA_BUCKET).remove(paths.slice(i, i + pageSize))
+    if (error) fail(error, 'Klarte ikke å slette familiebildene.')
+  }
+
+  const { data, error } = await sb.from('smaker_families').delete().eq('id', familyId).select('id')
+  if (error) fail(error, 'Klarte ikke å slette familien.')
+  if (!data?.length) throw new Error('Bare en eier kan slette familien.')
+}
+
 // ---------------- Oppskrifter ----------------
 
 export async function loadRecipes(sb: SupabaseClient, familyId: string): Promise<Recipe[]> {
