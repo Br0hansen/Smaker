@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { MainHeader } from '../components/AppChrome'
 import { Avatar, SectionTitle } from '../components/ui'
 import { createInviteLink, deleteFamily, signOut, updateMyName, useEmail, useFamily, useMode, useRecipes, useUserId } from '../data/store'
+import type { FamilyInvite } from '../data/store'
 import type { MemberRole } from '../domain/types'
 
 const ROLE: Record<MemberRole, string> = { owner: 'Eier', admin: 'Administrator', member: 'Medlem' }
@@ -14,7 +15,7 @@ export default function FamilyPage() {
   const mode = useMode()
   const email = useEmail()
   const me = useUserId()
-  const [link, setLink] = useState<string | null>(null)
+  const [invite, setInvite] = useState<FamilyInvite | null>(null)
   const [busy, setBusy] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [confirmingDelete, setConfirmingDelete] = useState(false)
@@ -30,9 +31,9 @@ export default function FamilyPage() {
   const makeLink = async () => {
     setBusy(true)
     try {
-      setLink(await createInviteLink())
+      setInvite(await createInviteLink())
     } catch (e) {
-      say(`Klarte ikke å lage lenke: ${(e as Error).message}`, 'danger')
+      say(`Klarte ikke å lage kode: ${(e as Error).message}`, 'danger')
     } finally {
       setBusy(false)
     }
@@ -40,17 +41,17 @@ export default function FamilyPage() {
 
   const copy = async () => {
     try {
-      await navigator.clipboard.writeText(link!)
-      say('Lenken er kopiert')
+      await navigator.clipboard.writeText(invite!.code)
+      say('Koden er kopiert')
     } catch {
-      say('Merk lenken og kopier den selv')
+      say('Merk koden og kopier den selv')
     }
   }
 
   const share = async () => {
     if (navigator.share) {
       try {
-        await navigator.share({ title: `Bli med i ${family.name} på Smaker`, text: 'Her er familiens kokebok:', url: link! })
+        await navigator.share({ title: `Bli med i ${family.name} på Smaker`, text: `Bruk invitasjonskoden ${invite!.code}:`, url: invite!.url })
         return
       } catch { /* avbrutt – faller tilbake til kopiering */ }
     }
@@ -125,22 +126,23 @@ export default function FamilyPage() {
           {canInvite && (
             <section className="flex flex-col gap-4 rounded-[var(--radius-card)] bg-sage-soft p-6">
               <h2 className="text-[1.45rem] font-semibold">Inviter flere</h2>
-              <p className="text-ink-2">Send en lenke til den du vil invitere. Lenken virker bare én gang og går ut etter sju dager.</p>
-              {!link ? (
+              <p className="text-ink-2">Del koden eller lenken med den du vil invitere. Koden virker bare én gang og går ut etter én time.</p>
+              {!invite ? (
                 <button className="btn btn-primary min-h-14 self-start px-6" onClick={makeLink} disabled={busy}>
-                  <IonIcon icon={personAddOutline} aria-hidden className="text-xl" /> {busy ? 'Lager lenke …' : 'Lag invitasjonslenke'}
+                  <IonIcon icon={personAddOutline} aria-hidden className="text-xl" /> {busy ? 'Lager kode …' : 'Lag invitasjonskode'}
                 </button>
               ) : (
                 <div className="flex flex-col gap-3">
-                  <div className="field flex items-center font-mono text-[0.85rem] break-all text-ink-2 select-all">{link}</div>
+                  <div className="field flex items-center justify-center font-mono text-[1.7rem] font-bold tracking-[0.25em] text-ink select-all" aria-label={`Invitasjonskode ${invite.code}`}>{invite.code}</div>
+                  <div className="text-[0.85rem] break-all text-ink-3 select-all">{invite.url}</div>
                   <div className="flex flex-wrap gap-3">
                     <button className="btn btn-primary" onClick={share}>
                       <IonIcon icon={shareOutline} aria-hidden /> Del lenken
                     </button>
                     <button className="btn btn-secondary" onClick={copy}>
-                      <IonIcon icon={copyOutline} aria-hidden /> Kopier
+                      <IonIcon icon={copyOutline} aria-hidden /> Kopier kode
                     </button>
-                    <button className="btn btn-ghost" onClick={() => setLink(null)}>Lag en ny</button>
+                    <button className="btn btn-ghost" onClick={() => setInvite(null)}>Lag en ny kode</button>
                   </div>
                   {mode === 'local' && <p className="text-[0.85rem] text-ink-3">Demomodus: lenken virker ikke uten innlogging.</p>}
                 </div>

@@ -72,12 +72,12 @@ export default function OnboardingPage() {
               onSelect={() => setChoice('join')}
               icon={peopleOutline}
               title="Bli med i familiens kokebok"
-              text="Du har fått en invitasjonslenke fra noen i familien."
+              text="Du har fått en sekstegns kode eller invitasjonslenke fra noen i familien."
             />
             {choice === 'join' && (
               <label className="flex flex-col gap-1.5 pl-1">
-                <span className="text-[0.92rem] font-bold text-ink-2">Invitasjonslenke</span>
-                <input className="field" value={inviteText} onChange={(e) => setInviteText(e.target.value)} placeholder="Lim inn lenken du fikk" autoCapitalize="none" />
+                <span className="text-[0.92rem] font-bold text-ink-2">Invitasjonskode eller lenke</span>
+                <input className="field font-mono uppercase" value={inviteText} onChange={(e) => setInviteText(e.target.value)} placeholder="F.eks. K7P4X2" autoCapitalize="characters" autoComplete="one-time-code" />
               </label>
             )}
             <ChoiceCard

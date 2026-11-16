@@ -9,6 +9,7 @@ const MIG = join(dirname(fileURLToPath(import.meta.url)), '../migrations')
 
 const db = new PGlite({ extensions: { pgcrypto } })
 const A = '00000000-0000-0000-0000-00000000000a', B = '00000000-0000-0000-0000-00000000000b'
+const D = '00000000-0000-0000-0000-00000000000d'
 
 // --- Minimal etterligning av Supabase ---
 await db.exec(`
@@ -24,7 +25,7 @@ await db.exec(`
   alter table storage.objects enable row level security; grant select, insert, delete on storage.objects to authenticated;
   create function storage.foldername(name text) returns text[] language sql immutable as $$ select string_to_array(name, '/') $$;
   alter default privileges in schema public grant all on tables to authenticated;
-  insert into auth.users values ('${A}', '{"name":"Anne"}'), ('${B}', '{"name":"Bjørn"}');
+  insert into auth.users values ('${A}', '{"name":"Anne"}'), ('${B}', '{"name":"Bjørn"}'), ('${D}', '{"name":"Dag"}');
 `)
 for (const f of readdirSync(MIG).sort()) await db.exec(readFileSync(join(MIG, f), 'utf8'))
 console.log('✓ migrasjonen kjørte')
@@ -35,6 +36,8 @@ const as = async (uid, sql, params) => {
 }
 const expectFail = async (label, fn) => { try { await fn(); console.log('✗ FEIL – burde feilet:', label); process.exitCode = 1 } catch (e) { console.log('✓', label, '→', e.message.split('\n')[0]) } }
 const check = (label, cond) => { console.log(cond ? '✓' : '✗ FEIL –', label); if (!cond) process.exitCode = 1 }
+const acceptInvite = async (uid, code, name = 'Test') =>
+  (await as(uid, `select smaker_accept_family_invite_v2($1, $2)`, [code, name]))[0].smaker_accept_family_invite_v2
 
 const [fam] = await as(A, `insert into smaker_families (name) values ('Familien A') returning id`)
 check('A blir eier automatisk', (await as(A, `select role, display_name from smaker_family_members`))[0]?.role === 'owner')
@@ -57,13 +60,14 @@ await expectFail('B kan ikke favorisere A sin oppskrift', () => as(B, `insert in
 check('B kan ikke oppdatere oppskriften', (await as(B, `update smaker_recipes set title = 'Hacket' where id = $1 returning id`, [rec.id])).length === 0)
 
 const [{ smaker_create_family_invite: token }] = await as(A, `select smaker_create_family_invite($1)`, [fam.id])
-check('A får et invitasjonstoken', typeof token === 'string' && token.length > 20)
+check('A får en sekstegns invitasjonskode', /^[A-HJ-NP-Z2-9]{6}$/.test(token))
 check('Bare hash lagres', (await as(A, `select token_hash from smaker_family_invites`))[0].token_hash !== token)
-await expectFail('feil token avvises', () => as(B, `select smaker_accept_family_invite('feil', 'Bjørn')`))
-await as(B, `select smaker_accept_family_invite($1, 'Bjørn')`, [token])
+check('koden utløper innen én time', (await as(A, `select expires_at <= now() + interval '1 hour 1 second' as short from smaker_family_invites where token_hash = encode(extensions.digest($1, 'sha256'), 'hex')`, [token]))[0]?.short === true)
+check('feil kode avvises', (await acceptInvite(B, 'FEIL22', 'Bjørn')).error === 'invalid')
+check('riktig kode godtas', (await acceptInvite(B, token.toLowerCase(), 'Bjørn')).ok === true)
 check('B ser oppskriften etter invitasjon', (await as(B, `select title from smaker_recipes`))[0]?.title === 'Vafler')
 check('B er vanlig medlem', (await as(B, `select role from smaker_family_members where user_id = $1`, [B]))[0]?.role === 'member')
-await expectFail('invitasjonen kan ikke brukes to ganger', () => as(B, `select smaker_accept_family_invite($1, 'Bjørn igjen')`, [token]))
+check('invitasjonen kan ikke brukes to ganger', (await acceptInvite(B, token, 'Bjørn igjen')).error === 'invalid')
 check('B kan ikke gjøre seg selv til admin', (await as(B, `update smaker_family_members set role = 'admin' where user_id = $1 returning role`, [B]).catch(() => [])).length === 0)
 await as(B, `insert into smaker_favorites (recipe_id) values ($1)`, [rec.id])
 check('B kan favorisere nå', (await as(B, `select * from smaker_favorites`)).length === 1)
@@ -113,10 +117,30 @@ check('C (annen familie) ser ingen favoritter', (await as(C, `select * from smak
 await expectFail('B kan ikke legge inn favoritt for A', () => as(B, `insert into smaker_favorites (user_id, recipe_id) values ($1, $2)`, [A, rec.id]))
 check('B kan ikke slette A sin favoritt', (await as(B, `delete from smaker_favorites where user_id = $1 returning *`, [A])).length === 0)
 
+// Kodeforsøk: 10 feil gir først 15 min sperre, andre gang innen 24 t gir karantene.
+const [{ smaker_create_family_invite: rateToken }] = await as(A, `select smaker_create_family_invite($1)`, [fam.id])
+for (let i = 0; i < 9; i++) check(`feil kode ${i + 1} registreres`, (await acceptInvite(D, `FEIL${i}X`)).error === 'invalid')
+const firstLimit = await acceptInvite(D, 'FEIL9X')
+check('tiende feil gir 15 minutters sperre', firstLimit.error === 'rate_limited' && firstLimit.retryAfterSeconds === 900)
+check('nye forsøk avvises under sperren', (await acceptInvite(D, rateToken)).error === 'rate_limited')
+await expectFail('brukeren kan ikke lese forsøkstelleren', () => as(D, `select * from smaker_invite_attempt_limits`))
+
+await db.exec(`update smaker_invite_attempt_limits set blocked_until = now() - interval '1 second', window_started_at = now() - interval '16 minutes' where user_id = '${D}'`)
+for (let i = 0; i < 9; i++) await acceptInvite(D, `IGJEN${i}`)
+const secondLimit = await acceptInvite(D, 'IGJEN9')
+check('ny grense innen 24 timer gir karantene', secondLimit.error === 'quarantine' && secondLimit.retryAfterSeconds === 86400)
+check('gyldig kode avvises under karantenen', (await acceptInvite(D, rateToken)).error === 'quarantine')
+
+await db.exec(`update smaker_invite_attempt_limits set quarantine_until = now() - interval '1 second' where user_id = '${D}'`)
+check('gyldig kode virker etter karantenen', (await acceptInvite(D, rateToken, 'Dag')).ok === true)
+check('vellykket kode nullstiller forsøkstelleren', (await db.query(`select * from smaker_invite_attempt_limits where user_id = '${D}'`)).rows.length === 0)
+check('eldre appversjon kan ikke omgå sperren', (await as(D, `select smaker_accept_family_invite('x', 'Dag')`))[0].smaker_accept_family_invite === null)
+check('forsøk fra eldre appversjon telles', (await db.query(`select failed_attempts from smaker_invite_attempt_limits where user_id = '${D}'`)).rows[0]?.failed_attempts === 1)
+
 // Alle eiere kan slette familien, mens vanlige medlemmer ikke kan.
 const [{ smaker_create_family: deleteFam }] = await as(A, `select smaker_create_family('Familien som skal slettes', 'Anne')`)
 const [{ smaker_create_family_invite: deleteInvite }] = await as(A, `select smaker_create_family_invite($1)`, [deleteFam])
-await as(B, `select smaker_accept_family_invite($1, 'Bjørn')`, [deleteInvite])
+check('B blir med i familien som skal slettes', (await acceptInvite(B, deleteInvite, 'Bjørn')).ok === true)
 check('vanlig medlem kan ikke slette familien', (await as(B, `delete from smaker_families where id = $1 returning id`, [deleteFam])).length === 0)
 await as(A, `update smaker_family_members set role = 'owner' where family_id = $1 and user_id = $2`, [deleteFam, B])
 check('en annen eier kan slette familien', (await as(B, `delete from smaker_families where id = $1 returning id`, [deleteFam])).length === 1)

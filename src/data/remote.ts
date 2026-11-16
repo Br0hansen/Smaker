@@ -91,9 +91,30 @@ export async function createFamily(sb: SupabaseClient, name: string, displayName
 }
 
 export async function acceptInvite(sb: SupabaseClient, token: string, displayName: string): Promise<string> {
-  const { data, error } = await sb.rpc('smaker_accept_family_invite', { p_token: token, p_display_name: displayName })
+  const { data, error } = await sb.rpc('smaker_accept_family_invite_v2', { p_code: token, p_display_name: displayName })
   if (error) fail(error, 'Invitasjonen er ugyldig eller utløpt.')
-  return data as string
+  const result = data as {
+    ok: boolean
+    familyId?: string
+    error?: 'invalid' | 'rate_limited' | 'quarantine' | 'signed_out'
+    retryAfterSeconds?: number
+    attemptsRemaining?: number
+  }
+  if (result?.ok && result.familyId) return result.familyId
+  if (result?.error === 'rate_limited') throw new Error(`For mange forsøk. Prøv igjen om ${waitText(result.retryAfterSeconds)}.`)
+  if (result?.error === 'quarantine') throw new Error(`Du har nådd forsøksgrensen på nytt. Prøv igjen om ${waitText(result.retryAfterSeconds)}.`)
+  if (result?.error === 'signed_out') throw new Error('Du må være logget inn.')
+  const attempts = result?.attemptsRemaining
+  throw new Error(`Koden er ugyldig eller utløpt.${typeof attempts === 'number' ? ` ${attempts} forsøk igjen.` : ''}`)
+}
+
+function waitText(seconds = 0): string {
+  if (seconds >= 60 * 60) {
+    const hours = Math.ceil(seconds / (60 * 60))
+    return `${hours} ${hours === 1 ? 'time' : 'timer'}`
+  }
+  const minutes = Math.max(1, Math.ceil(seconds / 60))
+  return `${minutes} ${minutes === 1 ? 'minutt' : 'minutter'}`
 }
 
 export async function createInvite(sb: SupabaseClient, familyId: string): Promise<string> {

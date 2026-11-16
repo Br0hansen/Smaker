@@ -138,10 +138,21 @@ export async function deleteRecipe(recipeId: string) {
   set({ recipes: state.recipes.filter((r) => r.id !== recipeId) })
 }
 
-/** Lager en invitasjonslenke. Med Supabase: engangstoken som går ut etter sju dager. */
-export async function createInviteLink(): Promise<string> {
-  const token = state.mode === 'remote' ? await remote.createInvite(supabase!, state.family.id) : newId().replace(/-/g, '')
-  return `${appUrl()}bli-med/${encodeURIComponent(token)}`
+export interface FamilyInvite {
+  code: string
+  url: string
+}
+
+/** Lager en sekstegns engangskode som går ut etter én time. */
+export async function createInviteLink(): Promise<FamilyInvite> {
+  const code = state.mode === 'remote' ? await remote.createInvite(supabase!, state.family.id) : localInviteCode()
+  return { code, url: `${appUrl()}bli-med/${encodeURIComponent(code)}` }
+}
+
+function localInviteCode(): string {
+  const alphabet = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'
+  const bytes = crypto.getRandomValues(new Uint8Array(6))
+  return [...bytes].map((byte) => alphabet[byte % alphabet.length]).join('')
 }
 
 export async function updateMyName(name: string) {
@@ -217,7 +228,8 @@ export function parseInvite(text: string): string | null {
   const t = text.trim()
   if (!t) return null
   const m = t.match(/\/bli-med\/([^/?#\s]+)/)
-  return m ? decodeURIComponent(m[1]) : t
+  const code = m ? decodeURIComponent(m[1]) : t
+  return code.replace(/[\s-]/g, '').toUpperCase()
 }
 
 export async function sendMagicLink(email: string) {
